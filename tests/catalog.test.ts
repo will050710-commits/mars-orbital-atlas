@@ -194,12 +194,13 @@ test('selection, unavailable assets, stale load reports and unavailable layers',
   assert.equal(store.getState().spectralMode, 'TERRAIN_MESH_3D');
   assert.equal(store.getState().viewStage, 'SUB_SCENE');
 
-  // Moon continues to keep unmeasured spectral/terrain modes disabled
+  // Moon now supports baked 8K surface, LOLA/Diviner spectral previews, and 3D terrain mesh
   store.getState().selectBody('moon');
   store.getState().setSpectralMode('MOLA_ELEVATION');
-  assert.equal(store.getState().spectralMode, 'VISUAL_RGB');
+  assert.equal(store.getState().spectralMode, 'MOLA_ELEVATION');
   store.getState().setSpectralMode('TERRAIN_MESH_3D');
-  assert.equal(store.getState().spectralMode, 'VISUAL_RGB');
+  assert.equal(store.getState().spectralMode, 'TERRAIN_MESH_3D');
+  assert.equal(store.getState().viewStage, 'SUB_SCENE');
 
   store.getState().selectBody('mars');
   store.getState().selectTarget(ATLAS_POIS[0]);

@@ -17,9 +17,15 @@ const ORBITAL_MOON_GLBS = new Set([
   '/assets/models/moons/apollo_csm.glb',
 ]);
 
+const ALLOWED_MOON_GLBS = new Set([
+  ...ORBITAL_MOON_GLBS,
+  '/assets/models/moons/moon_terrain.glb',
+]);
+
 const pathFromUrl = (rawUrl: string) => new URL(rawUrl).pathname;
 
 test('Moon globe, orbital GLBs, sourced POIs and six documented Apollo records without surface GLB requests', async ({ page }) => {
+  test.setTimeout(180000);
   const errors: string[] = [];
   const marsInitialModels: string[] = [];
   const moonModels: string[] = [];
@@ -41,7 +47,8 @@ test('Moon globe, orbital GLBs, sourced POIs and six documented Apollo records w
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Moon');
   await expect(page.locator('canvas')).toBeVisible();
   await expect(page.getByText('Globe minh họa · chưa có ảnh / địa hình đo đạc')).toBeVisible();
-  await expect(page.getByRole('button', { name: /Ảnh bề mặt.*unavailable/ })).toBeDisabled();
+  await expect(page.getByTestId('layer-btn-VISUAL_RGB')).toBeEnabled();
+  await expect(page.getByTestId('layer-btn-TERRAIN_MESH_3D')).toBeEnabled();
   await expect.poll(() => new Set(moonModels).size, { timeout: 30000 }).toBe(2);
   expect(moonModels.every((path) => ORBITAL_MOON_GLBS.has(path))).toBeTruthy();
 
@@ -142,7 +149,7 @@ test('narrow viewport keeps the Moon canvas, records and unavailable layers usab
   const panel = page.getByLabel('Thông tin và nguồn');
   await panel.scrollIntoViewIfNeeded();
   await expect(page.getByTestId('model-status')).toContainText('Chưa có mô hình');
-  await expect(page.getByRole('button', { name: /Địa hình \/ độ cao.*unavailable/ })).toBeDisabled();
+  await expect(page.getByTestId('layer-btn-TERRAIN_MESH_3D')).toBeEnabled();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
   await page.screenshot({ path: 'test-results/moon-mobile.png', fullPage: true });
 });
@@ -236,8 +243,12 @@ test('Moon orbital actors GLB Option 1 close-up, procedural Apollo LRV and Optio
 
   await buttonContaining(page, 'Tycho').click();
   await page.getByTestId('view-mode-closeup').click();
+  await expect(page.getByTestId('terrain-mesh-banner')).toContainText('moon_terrain.glb');
   await expect(page.getByLabel('Thông tin và nguồn')).toContainText('Tycho');
+  await page.waitForTimeout(800);
+  await page.screenshot({ path: 'test-results/moon-terrain-3d.png' });
 
-  expect(moonGlbRequests.every((path) => ORBITAL_MOON_GLBS.has(path))).toBeTruthy();
+  expect(moonGlbRequests).toContain('/assets/models/moons/moon_terrain.glb');
+  expect(moonGlbRequests.every((path) => ALLOWED_MOON_GLBS.has(path))).toBeTruthy();
   expect(errors).toEqual([]);
 });

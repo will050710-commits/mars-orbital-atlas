@@ -53,10 +53,12 @@ for (const record of records) {
 const orbitalAssets = [
   ['mars_odyssey', '/assets/models/mars/mars_odyssey.glb'],
   ['maven_orbiter', '/assets/models/mars/maven_orbiter.glb'],
+  ['mars_terrain', '/assets/models/mars/mars_terrain.glb'],
   ['phobos', '/assets/models/moons/phobos.glb'],
   ['deimos', '/assets/models/moons/deimos.glb'],
   ['lro_orbiter', '/assets/models/moons/lro_orbiter.glb'],
   ['apollo_csm', '/assets/models/moons/apollo_csm.glb'],
+  ['moon_terrain', '/assets/models/moons/moon_terrain.glb'],
   ['ares_station', '/assets/models/stations/ares_orbital_station.glb'],
 ];
 

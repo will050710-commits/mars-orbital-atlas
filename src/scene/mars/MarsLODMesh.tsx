@@ -6,6 +6,7 @@ import {
   generateProceduralMarsTextures,
   generateProceduralMoonTextures,
   loadBakedMarsWebPTextures,
+  loadBakedMoonWebPTextures,
   type BakedMarsWebPSet,
   type BodyPlanetaryTextures,
 } from '../../core/loaders/useProgressiveAsset';
@@ -34,8 +35,15 @@ export function MarsLODMesh({ body }: { body: BodyConfig }) {
 
     setTextures(owned);
 
-    if (body.textureStyle === 'illustrative-mars') {
-      void loadBakedMarsWebPTextures({ flipY: true, signal: controller.signal })
+    if (
+      body.textureStyle === 'illustrative-mars' ||
+      body.textureStyle === 'illustrative-moon'
+    ) {
+      const loadBaked =
+        body.textureStyle === 'illustrative-moon'
+          ? loadBakedMoonWebPTextures
+          : loadBakedMarsWebPTextures;
+      void loadBaked({ flipY: true, signal: controller.signal })
         .then((webpSet) => {
           if (controller.signal.aborted) {
             webpSet.albedo.dispose();
@@ -91,7 +99,13 @@ export function MarsLODMesh({ body }: { body: BodyConfig }) {
           <sphereGeometry args={[body.radiusKm, segments, segments]} />
           <meshStandardMaterial
             key={materialKey}
-            color={textures ? '#ffffff' : body.color}
+            color={
+              textures
+                ? body.id === 'moon' && !isFalseColor
+                  ? '#c2c4ca'
+                  : '#ffffff'
+                : body.color
+            }
             map={activeMap}
             normalMap={textures?.normal ?? null}
             normalScale={normalScale}

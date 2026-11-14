@@ -3,18 +3,29 @@ import { ATLAS_POIS } from '../../config/atlasPOIs';
 import { getOrbitalActorsForBody } from '../../config/celestialCatalog';
 import { DEVICE_CATALOG } from '../../config/deviceCatalog';
 import { useCosmosStore } from '../../store/useCosmosStore';
-import type { SpectralMode } from '../../types/cosmos.types';
+import type { BodyId, SpectralMode } from '../../types/cosmos.types';
 
-const MARS_LAYER_OPTIONS: Array<{
-  mode: SpectralMode;
-  label: string;
-  tag: string;
-}> = [
-  { mode: 'VISUAL_RGB', label: 'Ảnh màu 8K (Baked)', tag: 'WebP 8K' },
-  { mode: 'MOLA_ELEVATION', label: 'Độ cao (Minh họa)', tag: 'MOLA' },
-  { mode: 'THERMAL_IR', label: 'Hồng ngoại (Minh họa)', tag: 'THEMIS' },
-  { mode: 'TERRAIN_MESH_3D', label: 'Địa hình 3D (Mesh)', tag: 'GLB + 8K' },
-];
+const BODY_LAYER_OPTIONS: Record<
+  BodyId,
+  Array<{
+    mode: SpectralMode;
+    label: string;
+    tag: string;
+  }>
+> = {
+  mars: [
+    { mode: 'VISUAL_RGB', label: 'Ảnh màu 8K (Baked)', tag: 'WebP 8K' },
+    { mode: 'MOLA_ELEVATION', label: 'Độ cao (Minh họa)', tag: 'MOLA' },
+    { mode: 'THERMAL_IR', label: 'Hồng ngoại (Minh họa)', tag: 'THEMIS' },
+    { mode: 'TERRAIN_MESH_3D', label: 'Địa hình 3D (Mesh)', tag: 'GLB + 8K' },
+  ],
+  moon: [
+    { mode: 'VISUAL_RGB', label: 'Ảnh màu 8K (Baked)', tag: 'WebP 8K' },
+    { mode: 'MOLA_ELEVATION', label: 'Độ cao (Minh họa)', tag: 'LOLA' },
+    { mode: 'THERMAL_IR', label: 'Hồng ngoại (Minh họa)', tag: 'Diviner' },
+    { mode: 'TERRAIN_MESH_3D', label: 'Địa hình 3D (Mesh)', tag: 'GLB + 8K' },
+  ],
+};
 
 export function CelestialQuickSelect() {
   const bodyId = useCosmosStore((state) => state.activeBodyId);
@@ -105,34 +116,19 @@ export function CelestialQuickSelect() {
       ))}
 
       <div className="dock-section-title">Lớp dữ liệu</div>
-      {bodyId === 'mars' ? (
-        MARS_LAYER_OPTIONS.map((layer) => (
-          <button
-            key={layer.mode}
-            type="button"
-            className="target-list-btn"
-            data-testid={`layer-btn-${layer.mode}`}
-            aria-pressed={spectralMode === layer.mode}
-            onClick={() => setSpectralMode(layer.mode)}
-          >
-            <span className="target-btn-name">{layer.label}</span>
-            <span className="target-btn-sub">{layer.tag}</span>
-          </button>
-        ))
-      ) : (
-        body.layers.map((layer) => (
-          <button
-            key={layer.id}
-            type="button"
-            className="target-list-btn"
-            disabled={layer.status === 'unavailable'}
-            title={layer.detail}
-          >
-            <span className="target-btn-name">{layer.label}</span>
-            <span className="target-btn-sub">{layer.status}</span>
-          </button>
-        ))
-      )}
+      {BODY_LAYER_OPTIONS[bodyId].map((layer) => (
+        <button
+          key={layer.mode}
+          type="button"
+          className="target-list-btn"
+          data-testid={`layer-btn-${layer.mode}`}
+          aria-pressed={spectralMode === layer.mode}
+          onClick={() => setSpectralMode(layer.mode)}
+        >
+          <span className="target-btn-name">{layer.label}</span>
+          <span className="target-btn-sub">{layer.tag}</span>
+        </button>
+      ))}
     </aside>
   );
 }

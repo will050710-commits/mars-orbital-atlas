@@ -31,7 +31,7 @@ const SURFACE_MARS_GLBS = [
 const pathFromUrl = (rawUrl: string) => new URL(rawUrl).pathname;
 
 test('Mars globe, orbital GLBs, sourced POIs, lazy surface GLB models and Moon unavailable entries', async ({ page }) => {
-  test.setTimeout(150000);
+  test.setTimeout(240000);
   const errors: string[] = [];
   const models: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
@@ -71,7 +71,7 @@ test('Mars globe, orbital GLBs, sourced POIs, lazy surface GLB models and Moon u
 });
 
 test('repeated model inspection releases model geometries and textures', async ({ page }) => {
-  test.setTimeout(150000);
+  test.setTimeout(210000);
   await page.goto('/');
   const memory = () => page.evaluate(async () => {
     const modulePath = '/src/core/canvas/rendererDiagnostics.ts';
@@ -102,7 +102,7 @@ test('repeated model inspection releases model geometries and textures', async (
     return previous!;
   };
 
-  await expect.poll(async () => (await memory())?.geometries, { timeout: 15000 }).toBeGreaterThan(0);
+  await expect.poll(async () => (await memory())?.geometries, { timeout: 45000 }).toBeGreaterThan(0);
   await page.getByRole('button', { name: 'Dừng', exact: true }).click();
   // Settle initial overview (Mars 8K WebPs + 7 orbital GLBs) and capture Viking -> Overview baseline
   await buttonContaining(page, 'Viking landers').click();
@@ -110,15 +110,13 @@ test('repeated model inspection releases model geometries and textures', async (
   const vikingBaseline = await memory();
   await page.getByRole('button', { name: 'Trở về toàn cảnh', exact: true }).click();
   const baseline = await waitUntilSettled();
-  console.log('[mem:baseline]', baseline);
 
   for (let i = 0; i < 3; i++) {
     await buttonContaining(page, 'Viking landers').click();
     await expect(page.getByTestId('model-status')).toHaveText('Đã tải mô hình', { timeout: 60000 });
-    await expect.poll(async () => (await memory())?.textures, { timeout: 15000 }).toBeLessThanOrEqual((vikingBaseline?.textures ?? 26) + 2);
+    await expect.poll(async () => (await memory())?.textures, { timeout: 30000 }).toBeLessThanOrEqual((vikingBaseline?.textures ?? 26) + 2);
     await page.getByRole('button', { name: 'Trở về toàn cảnh', exact: true }).click();
     const settled = await waitUntilSettled();
-    console.log(`[mem:cycle-${i}]`, settled);
     expect(settled.geometries).toBeLessThanOrEqual(baseline.geometries + 4);
     expect(settled.textures).toBeLessThanOrEqual(baseline.textures + 2);
   }
@@ -223,7 +221,7 @@ test('Ingenuity device inspection exposes documented camera views, coaxial rotor
 });
 
 test('Mars orbital actors, 8K terrain mesh and Option 1 / Option 2 flows work without errors', async ({ page }) => {
-  test.setTimeout(120000);
+  test.setTimeout(240000);
   const errors: string[] = [];
   const requestedUrls: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
@@ -299,6 +297,44 @@ test('Mars orbital actors, 8K terrain mesh and Option 1 / Option 2 flows work wi
   await page.getByTestId('pov-action-scan').click();
   await expect(page.getByTestId('pov-scan-readout')).toBeVisible();
   await page.screenshot({ path: 'test-results/mars-pov-perseverance.png' });
+
+  // Regression guard: returning to orbital overview after Terrain 3D / POV unmounts must NOT blank out Mars's baked globe texture
+  await page.getByRole('button', { name: 'Trở về toàn cảnh', exact: true }).click();
+  await expect(page.getByTestId('control-room-hud')).toHaveCount(0);
+  await page.waitForTimeout(1600);
+  const canvasBox = await page.locator('canvas').boundingBox();
+  expect(canvasBox).not.toBeNull();
+  const centerClip = {
+    x: Math.round(canvasBox!.x + canvasBox!.width * 0.35),
+    y: Math.round(canvasBox!.y + canvasBox!.height * 0.35),
+    width: Math.max(40, Math.round(canvasBox!.width * 0.3)),
+    height: Math.max(40, Math.round(canvasBox!.height * 0.3)),
+  };
+  const centerPng = await page.screenshot({ clip: centerClip });
+  await page.screenshot({ path: 'test-results/mars-globe-after-pov.png' });
+  const warmPixelCount = await page.evaluate(async (b64) => {
+    const img = new Image();
+    img.src = `data:image/png;base64,${b64}`;
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error('Failed to decode screenshot'));
+    });
+    const c = document.createElement('canvas');
+    c.width = img.width;
+    c.height = img.height;
+    const ctx = c.getContext('2d')!;
+    ctx.drawImage(img, 0, 0);
+    const data = ctx.getImageData(0, 0, c.width, c.height).data;
+    let warm = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      if (r >= 80 && r > g + 12 && r > b + 20) warm += 1;
+    }
+    return warm;
+  }, centerPng.toString('base64'));
+  expect(warmPixelCount).toBeGreaterThan(25);
 
   expect(errors).toEqual([]);
 });

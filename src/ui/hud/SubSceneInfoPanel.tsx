@@ -411,10 +411,12 @@ export function SubSceneInfoPanel() {
               <li key={item}>{item}</li>
             ))}
           </ul>
-          {spectralMode === 'TERRAIN_MESH_3D' && bodyId === 'mars' && (
+          {spectralMode === 'TERRAIN_MESH_3D' && (
             <div className="control-facts-box" data-testid="terrain-mesh-banner">
               <small>
-                Đang hiển thị khối địa hình 3D Sao Hỏa (`mars_terrain.glb` + bộ texture WebP baked 8K: Albedo, Normals, Roughness). Kéo để xoay quanh khối địa hình.
+                {bodyId === 'moon'
+                  ? 'Đang hiển thị khối địa hình 3D Mặt Trăng (`moon_terrain.glb` + bộ texture WebP baked 8K: Albedo, Normals, Roughness). Kéo để xoay quanh khối địa hình.'
+                  : 'Đang hiển thị khối địa hình 3D Sao Hỏa (`mars_terrain.glb` + bộ texture WebP baked 8K: Albedo, Normals, Roughness). Kéo để xoay quanh khối địa hình.'}
               </small>
             </div>
           )}

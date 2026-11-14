@@ -385,8 +385,6 @@ export const useCosmosStore = create<CosmosState>()(
     setTimeScale: (scale) => set({ timeScale: scale }),
 
     setSpectralMode: (mode) => {
-      const currentBody = get().activeBodyId;
-      if (currentBody === 'moon' && mode !== 'VISUAL_RGB') return;
       set((state) => ({
         spectralMode: mode,
         ...(mode === 'TERRAIN_MESH_3D'

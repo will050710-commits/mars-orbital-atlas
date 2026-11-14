@@ -270,25 +270,37 @@ export function generateProceduralMarsTextures(): BodyPlanetaryTextures {
   };
 }
 
+export interface BakedBodyWebPUrls {
+  albedo: string;
+  normal: string;
+  roughness: string;
+}
+
 export interface BakedMarsWebPSet {
   albedo: THREE.Texture;
   normal: THREE.Texture;
   roughness: THREE.Texture;
 }
 
-export const MARS_BAKED_WEBP_URLS = {
+export const MARS_BAKED_WEBP_URLS: BakedBodyWebPUrls = {
   albedo: '/assets/textures/mars_albedo_baked.webp',
   normal: '/assets/textures/mars_normals.webp',
   roughness: '/assets/textures/mars_roughness.webp',
-} as const;
+};
 
-interface CachedMarsWebPImages {
+export const MOON_BAKED_WEBP_URLS: BakedBodyWebPUrls = {
+  albedo: '/assets/textures/moon_albedo_baked.webp',
+  normal: '/assets/textures/moon_normals.webp',
+  roughness: '/assets/textures/moon_roughness.webp',
+};
+
+interface CachedBakedWebPImages {
   albedo: TexImageSource;
   normal: TexImageSource;
   roughness: TexImageSource;
 }
 
-let cachedMarsWebPImagesPromise: Promise<CachedMarsWebPImages> | null = null;
+const bakedWebPImageCache = new Map<string, Promise<CachedBakedWebPImages>>();
 
 function rasterizeImageToPowerOfTwoCanvas(
   img: HTMLImageElement,
@@ -307,25 +319,6 @@ function rasterizeImageToPowerOfTwoCanvas(
   return canvas;
 }
 
-async function resizeToPowerOfTwo(
-  img: HTMLImageElement,
-  targetWidth: number,
-  targetHeight: number,
-): Promise<TexImageSource> {
-  if (typeof createImageBitmap === 'function') {
-    try {
-      return await createImageBitmap(img, {
-        resizeWidth: targetWidth,
-        resizeHeight: targetHeight,
-        resizeQuality: 'high',
-      });
-    } catch {
-      // Fallback to 2D canvas downsampling if resized ImageBitmap is unsupported
-    }
-  }
-  return rasterizeImageToPowerOfTwoCanvas(img, targetWidth, targetHeight);
-}
-
 function loadWebPImage(url: string): Promise<HTMLImageElement> {
   return new Promise<HTMLImageElement>((resolve, reject) => {
     const loader = new THREE.ImageLoader();
@@ -339,44 +332,46 @@ function loadWebPImage(url: string): Promise<HTMLImageElement> {
 }
 
 /**
- * Loads the supplied baked 8K Mars WebP texture suite asynchronously and caches
- * the high-precision pre-filtered surfaces so repeated globe/terrain mounts never re-decode.
+ * Loads a baked 8K planetary WebP texture suite asynchronously and caches
+ * power-of-two HTMLCanvasElement surfaces (never closeable ImageBitmap singletons)
+ * so disposing terrain meshes never blanks out shared orbital globe textures.
  * Callers own disposal of the returned Texture instances.
  */
-export async function loadBakedMarsWebPTextures(options?: {
-  flipY?: boolean;
-  signal?: AbortSignal;
-}): Promise<BakedMarsWebPSet> {
+async function loadBakedBodyWebPTextures(
+  cacheKey: string,
+  urls: BakedBodyWebPUrls,
+  options?: {
+    flipY?: boolean;
+    signal?: AbortSignal;
+  },
+): Promise<BakedMarsWebPSet> {
   if (options?.signal?.aborted) {
     throw new DOMException('Aborted', 'AbortError');
   }
   const flipY = options?.flipY ?? true;
 
-  if (!cachedMarsWebPImagesPromise) {
-    cachedMarsWebPImagesPromise = Promise.all([
-      loadWebPImage(MARS_BAKED_WEBP_URLS.albedo),
-      loadWebPImage(MARS_BAKED_WEBP_URLS.normal),
-      loadWebPImage(MARS_BAKED_WEBP_URLS.roughness),
+  let cachedPromise = bakedWebPImageCache.get(cacheKey);
+  if (!cachedPromise) {
+    cachedPromise = Promise.all([
+      loadWebPImage(urls.albedo),
+      loadWebPImage(urls.normal),
+      loadWebPImage(urls.roughness),
     ])
-      .then(async ([albedo, normal, roughness]) => {
-        const [scaledAlbedo, scaledNormal, scaledRoughness] = await Promise.all([
-          resizeToPowerOfTwo(albedo, 2048, 1024),
-          resizeToPowerOfTwo(normal, 2048, 1024),
-          resizeToPowerOfTwo(roughness, 1024, 512),
-        ]);
-        return {
-          albedo: scaledAlbedo,
-          normal: scaledNormal,
-          roughness: scaledRoughness,
-        };
-      })
+      .then(([albedo, normal, roughness]) => ({
+        // Store HTMLCanvasElement instead of ImageBitmap so disposeModel's bitmap.close()
+        // on unmounted sub-scenes cannot detach cached globe surface pixels.
+        albedo: rasterizeImageToPowerOfTwoCanvas(albedo, 2048, 1024),
+        normal: rasterizeImageToPowerOfTwoCanvas(normal, 2048, 1024),
+        roughness: rasterizeImageToPowerOfTwoCanvas(roughness, 1024, 512),
+      }))
       .catch((err) => {
-        cachedMarsWebPImagesPromise = null;
+        bakedWebPImageCache.delete(cacheKey);
         throw err;
       });
+    bakedWebPImageCache.set(cacheKey, cachedPromise);
   }
 
-  const images = await cachedMarsWebPImagesPromise;
+  const images = await cachedPromise;
   if (options?.signal?.aborted) {
     throw new DOMException('Aborted', 'AbortError');
   }
@@ -388,8 +383,8 @@ export async function loadBakedMarsWebPTextures(options?: {
     tex.wrapT = THREE.ClampToEdgeWrapping;
     tex.colorSpace = isSRGB ? THREE.SRGBColorSpace : THREE.NoColorSpace;
     tex.magFilter = THREE.LinearFilter;
-    tex.minFilter = THREE.LinearFilter;
-    tex.generateMipmaps = false;
+    tex.minFilter = THREE.LinearMipmapLinearFilter;
+    tex.generateMipmaps = true;
     tex.anisotropy = 8;
     tex.needsUpdate = true;
     return tex;
@@ -400,6 +395,26 @@ export async function loadBakedMarsWebPTextures(options?: {
     normal: makeTex(images.normal, false),
     roughness: makeTex(images.roughness, false),
   };
+}
+
+/**
+ * Loads the baked 8K Mars WebP texture suite asynchronously.
+ */
+export function loadBakedMarsWebPTextures(options?: {
+  flipY?: boolean;
+  signal?: AbortSignal;
+}): Promise<BakedMarsWebPSet> {
+  return loadBakedBodyWebPTextures('mars', MARS_BAKED_WEBP_URLS, options);
+}
+
+/**
+ * Loads the baked 8K Moon WebP texture suite asynchronously.
+ */
+export function loadBakedMoonWebPTextures(options?: {
+  flipY?: boolean;
+  signal?: AbortSignal;
+}): Promise<BakedMarsWebPSet> {
+  return loadBakedBodyWebPTextures('moon', MOON_BAKED_WEBP_URLS, options);
 }
 
 interface LunarBasinDef {
