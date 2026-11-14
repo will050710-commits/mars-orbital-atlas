@@ -1,29 +1,27 @@
 import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Html, Line } from '@react-three/drei';
 import * as THREE from 'three';
 import {
   ORBITAL_ACTORS_CATALOG,
   computeOrbitalPosition,
 } from '../../config/celestialCatalog';
 import { useCosmosStore } from '../../store/useCosmosStore';
-import { AssetCalloutBox } from '../../ui/hud/AssetCalloutBox';
+import { NativeOrbitLine } from '../common/NativeOrbitLine';
+import { OrbitalGlbModel } from '../common/OrbitalGlbModel';
 
 const deimosTarget = ORBITAL_ACTORS_CATALOG.find((c) => c.id === 'deimos')!;
 
 /**
- * Deimos outer moon orbit and illustrative irregular asteroid mesh.
- * Avoids eager GLB fetches on orbital overview.
+ * Deimos outer moon orbit rendering the official NASA 3D Resources GLB model
+ * along its documented Keplerian trajectory around Mars.
  */
 export const DeimosOrbit: React.FC = () => {
   const groupRef = useRef<THREE.Group>(null!);
-  const meshRef = useRef<THREE.Group>(null!);
   const worldPosRef = useRef(new THREE.Vector3());
 
   const selectTarget = useCosmosStore((state) => state.selectTarget);
   const controlsLocked = useCosmosStore((state) => state.controlsLocked);
   const activeTargetId = useCosmosStore((state) => state.activeTarget?.id);
-  const viewStage = useCosmosStore((state) => state.viewStage);
 
   const orbitPoints = useMemo(() => {
     const pts: THREE.Vector3[] = [];
@@ -37,70 +35,49 @@ export const DeimosOrbit: React.FC = () => {
     return pts;
   }, []);
 
-  useFrame((_, delta) => {
+  useFrame(() => {
     if (!groupRef.current || !deimosTarget.orbitalElements) return;
     const simTime = useCosmosStore.getState().simulationTime;
     computeOrbitalPosition(deimosTarget.orbitalElements, simTime, groupRef.current.position);
     groupRef.current.getWorldPosition(worldPosRef.current);
     useCosmosStore.getState().updateDynamicPosition('deimos', worldPosRef.current);
-
-    if (meshRef.current) {
-      meshRef.current.rotation.y += Math.min(delta, 0.05) * 0.18;
-    }
   });
 
   const isSelected = activeTargetId === 'deimos';
-  const showCallout = !controlsLocked && !(isSelected && viewStage === 'SUB_SCENE');
 
   return (
     <group>
-      <Line
+      <NativeOrbitLine
         points={orbitPoints}
         color={isSelected ? '#7cdaa1' : '#4a5f82'}
         opacity={isSelected ? 0.72 : 0.24}
         transparent
-        lineWidth={1.1}
       />
 
-      <group ref={groupRef} position={deimosTarget.position}>
-        <group
-          ref={meshRef}
-          scale={[deimosTarget.radius, deimosTarget.radius, deimosTarget.radius]}
-          onClick={(event) => {
-            event.stopPropagation();
-            if (!controlsLocked) selectTarget(deimosTarget);
-          }}
-          onPointerOver={() => {
-            document.body.style.cursor = 'pointer';
-          }}
-          onPointerOut={() => {
-            document.body.style.cursor = 'default';
-          }}
-        >
-          <mesh scale={[1.15, 0.9, 0.85]} castShadow receiveShadow>
-            <dodecahedronGeometry args={[1, 2]} />
-            <meshStandardMaterial color="#9e8c7a" roughness={0.88} metalness={0.04} />
-          </mesh>
-        </group>
-
-        <Html
-          zIndexRange={[8, 0]}
-          style={{
-            opacity: showCallout ? 1 : 0,
-            pointerEvents: showCallout ? 'auto' : 'none',
-            transition: 'opacity 0.25s ease',
-          }}
-        >
-          <AssetCalloutBox
-            title="Deimos"
-            meta="MOON II • 23.463 KM"
-            category="MOON"
-            variant={3}
+      <group
+        ref={groupRef}
+        position={deimosTarget.position}
+        onClick={(event) => {
+          event.stopPropagation();
+          if (!controlsLocked) selectTarget(deimosTarget);
+        }}
+        onPointerOver={() => {
+          document.body.style.cursor = 'pointer';
+        }}
+        onPointerOut={() => {
+          document.body.style.cursor = 'default';
+        }}
+      >
+        {deimosTarget.modelPath ? (
+          <OrbitalGlbModel
+            modelPath={deimosTarget.modelPath}
+            visualRadius={deimosTarget.radius}
             isSelected={isSelected}
-            isVisible={showCallout}
-            onClick={() => selectTarget(deimosTarget)}
+            accentColor="#7cdaa1"
+            spinAxisYRate={0.12}
+            showSelectionRing
           />
-        </Html>
+        ) : null}
       </group>
     </group>
   );

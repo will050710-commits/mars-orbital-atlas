@@ -126,10 +126,98 @@ export const INGENUITY_ALL_NODES = [
   'solar_panel',
 ] as const;
 
+export const PERSEVERANCE_MAST_OPTICS_NODES = [
+  'head',
+  'lens',
+  'Mastcam_Z_cams',
+  'NavCams',
+  'microphones.001',
+  'probe',
+  'probe.001',
+  'base',
+  'top',
+  'bottom',
+  'bottom.001',
+  'bottom.002',
+  'bottom.003',
+  'Up_Look_Camera',
+  'Down_Look_Camera',
+  'calibration_target',
+  'calibration_target_bracket',
+] as const;
+
+export const PERSEVERANCE_ARM_TURRET_NODES = [
+  'arm.003',
+  'arm.002',
+  'arm',
+  'arm.004',
+  'arm.001',
+  'arm_cable_etc',
+  'turret_obj',
+  'turret_obj.002',
+  'turret_obj.004',
+  'turret_obj.006',
+  'turret_parts',
+  'corring_drill',
+  'cover_02',
+  'cover_03',
+  'hinge',
+  'PIXL_cover_01',
+  'PIXL',
+  'WATSON',
+  'arm_01_joint',
+  'arm_01_pivot',
+  'arm_01',
+  'arm_02_joint',
+  'arm_02_pivot',
+  'arm_02',
+  'arm_02.001',
+] as const;
+
+export const PERSEVERANCE_POWER_COMMS_NODES = [
+  'rtg',
+  'antenna_uhf',
+  'antenna_hg',
+  'antenna_lg',
+  'RIMFAX',
+  'Name_Chips',
+  'pan_end cover',
+] as const;
+
+export const PERSEVERANCE_CHASSIS_MOBILITY_NODES = [
+  'Wheels_objs',
+  'suspension',
+  'Body',
+  'Body.002',
+  'Body.003',
+  'Body_Parts',
+  'Body_Parts.001',
+  'part_01',
+  'box',
+  'lab',
+  'hazcams_front',
+  'hazcams_front_cover',
+  'hazcams_rear',
+  'hazcams_rear_cover_l',
+  'hazcams_rear_cover_r',
+  'hazcams_rear_wiring',
+  'microphones',
+] as const;
+
+export const PERSEVERANCE_ALL_NODES = [
+  ...PERSEVERANCE_MAST_OPTICS_NODES,
+  ...PERSEVERANCE_ARM_TURRET_NODES,
+  ...PERSEVERANCE_POWER_COMMS_NODES,
+  ...PERSEVERANCE_CHASSIS_MOBILITY_NODES,
+] as const;
+
+export const CURIOSITY_ALL_NODES = ['MSL'] as const;
+
 /**
  * Verified source-backed inspection & limited mechanism specs.
- * Both `ingenuity_helicopter` (11 nodes) and `insight_lander` (83 nodes) have
- * GLB hierarchies verified against official NASA/JPL documentation.
+ * `ingenuity_helicopter` (11 nodes), `insight_lander` (83 nodes),
+ * `perseverance_rover` (66 nodes), and `curiosity_rover` (1 static MSL node)
+ * have GLB hierarchies verified against official NASA/JPL documentation.
  */
 export const DEVICE_CONTROL_SPECS: Record<string, DeviceControlSpec> = {
   ingenuity_helicopter: {
@@ -385,6 +473,200 @@ export const DEVICE_CONTROL_SPECS: Record<string, DeviceControlSpec> = {
         url: 'https://science.nasa.gov/mission/insight/',
         checked: '2026-11-14',
         version: 'Supplied NASA 3D Resource GLB (83 nodes)',
+      },
+    ],
+  },
+  perseverance_rover: {
+    deviceId: 'perseverance_rover',
+    modelVersion: '1.0.0 (NASA/JPL-Caltech 25042_Perseverance.glb · fit-longest-side-2 · 66 nodes)',
+    generalDisclaimer:
+      'Camera presets and subsystem highlights reflect the verified 66-node official NASA/JPL-Caltech Perseverance GLB hierarchy normalized to 2 scene units. Robotic arm joints, mast pan/tilt, and Control Room scans are static/illustrative.',
+    cameraViews: [
+      {
+        id: 'overview',
+        label: '3/4 Rover Overview',
+        position: [2.15, 1.15, 2.25],
+        target: [0, 0.05, 0],
+        summary:
+          'Overview of all 66 NASA Perseverance mesh nodes: rocker-bogie chassis, extended 2.1 m sampling arm, Remote Sensing Mast, and aft MMRTG power unit.',
+        sourceRef: 'NASA Mars 2020 Launch Press Kit & NASA 3D Resource GLB',
+        isIllustrativeView: true,
+      },
+      {
+        id: 'mastcam_supercam',
+        label: 'Mastcam-Z & SuperCam Head',
+        position: [-1.05, 0.92, 1.15],
+        target: [-0.26, 0.52, 0.36],
+        summary:
+          'Close inspection of the Remote Sensing Mast head carrying dual Mastcam-Z zoom cameras, SuperCam laser optics, NavCams, MEDA wind boom, and microphone.',
+        sourceRef: 'NASA Mars 2020 Rover Components & Perseverance GLB',
+        isIllustrativeView: true,
+      },
+      {
+        id: 'arm_pixl_turret',
+        label: '2.1 m Arm & PIXL/WATSON Turret',
+        position: [0.85, 0.35, 1.65],
+        target: [0.08, -0.02, 0.68],
+        summary:
+          'Front close-up of the rotary-percussive coring drill, PIXL X-ray spectrometer, WATSON macro camera, and 5-DOF articulated arm harness.',
+        sourceRef: 'NASA Mars 2020 Sampling & Caching System Overview',
+        isIllustrativeView: true,
+      },
+      {
+        id: 'aft_rtg_rimfax',
+        label: 'Aft MMRTG & RIMFAX Radar',
+        position: [-1.45, 0.62, -1.55],
+        target: [0, 0.02, -0.62],
+        summary:
+          'Rear view highlighting the Multi-Mission Radioisotope Thermoelectric Generator (MMRTG), RIMFAX ground-penetrating radar antenna, UHF/X-band dishes, and Send Your Name plaque.',
+        sourceRef: 'NASA Mars 2020 Power & Communications Fact Sheet',
+        isIllustrativeView: true,
+      },
+    ],
+    partGroups: [
+      {
+        id: 'all',
+        label: 'Complete Rover Assembly (66 nodes)',
+        nodeNames: [...PERSEVERANCE_ALL_NODES],
+        documentedSpec:
+          'Launch mass 1,025 kg (dimensions ~3.0 m × 2.7 m × 2.2 m); car-sized Mars 2020 astrobiology and core-caching flagship rover.',
+        sourceRef: 'NASA Mars 2020 Launch Press Kit',
+        limitationNote:
+          'Displays all 66 named nodes of official NASA 25042_Perseverance.glb in extended sampling configuration, normalized via fit-longest-side-2.',
+        isControlVerified: true,
+      },
+      {
+        id: 'optics_mast',
+        label: 'Remote Sensing Mast & Cameras (17)',
+        nodeNames: [...PERSEVERANCE_MAST_OPTICS_NODES],
+        documentedSpec:
+          'Includes Mastcam-Z stereo zoom imagers, SuperCam LIBS/Raman head (lens), NavCams, EDL Up/Down Look cameras, MEDA probes, and calibration targets.',
+        sourceRef: 'NASA Mars 2020 Science Instruments',
+        limitationNote:
+          'Isolates optical mast and camera assemblies statically; mast pan/tilt actuators are not animated in close-up inspection mode.',
+        isControlVerified: false,
+      },
+      {
+        id: 'robotic_arm',
+        label: 'Sampling Arm, Turret & Belly Bay (25)',
+        nodeNames: [...PERSEVERANCE_ARM_TURRET_NODES],
+        documentedSpec:
+          '2.1 m 5-axis robotic arm carrying a ~45 kg turret with rotary-percussive coring drill, PIXL, and WATSON, plus under-chassis sample/helicopter bay hardware.',
+        sourceRef: 'NASA Mars 2020 Turret & Sample Caching System',
+        limitationNote:
+          'Turret and arm nodes remain at nominal deployed pose in close-up mode; illustrative arm reach/scan previews live under Option 2 Control Room POV.',
+        isControlVerified: false,
+      },
+      {
+        id: 'mobility_chassis',
+        label: 'Rocker-Bogie Chassis & Hazcams (17)',
+        nodeNames: [...PERSEVERANCE_CHASSIS_MOBILITY_NODES],
+        documentedSpec:
+          'Titanium rocker-bogie suspension with six 52.5 cm strengthened aluminum curved-grouser wheels, avionics body, MOXIE/ACA bay, and front/rear Hazcams.',
+        sourceRef: 'NASA Mars 2020 Mobility & Chassis Architecture',
+        limitationNote:
+          'Wheels and suspension links are rigid mesh nodes; terrain-following suspension compliance and wheel odometry are not simulated.',
+        isControlVerified: false,
+      },
+      {
+        id: 'power_thermal',
+        label: 'MMRTG, Antennas & RIMFAX (7)',
+        nodeNames: [...PERSEVERANCE_POWER_COMMS_NODES],
+        documentedSpec:
+          'Pu-238 MMRTG (~110 W initial electric), High-Gain/Low-Gain/UHF antennas, rear bumper RIMFAX subsurface radar, and belly shield panel.',
+        sourceRef: 'NASA Mars 2020 Power & Telecommunications',
+        limitationNote:
+          'Static hardware highlight only; no real-time thermal wattage or radar sounder telemetry is attached to this 3D mesh.',
+        isControlVerified: false,
+      },
+    ],
+    sources: [
+      {
+        title: 'NASA 3D Resources · Mars Perseverance Rover 3D Model',
+        url: 'https://science.nasa.gov/resource/mars-perseverance-rover-3d-model/',
+        checked: '2026-11-14',
+        version: '25042_Perseverance.glb (66 nodes)',
+      },
+      {
+        title: 'NASA Mars 2020 Provenance Notes',
+        url: '/assets/provenance/mars-rovers.csv',
+        checked: '2026-11-14',
+        version: 'Landing coordinates & Mars 2020 press kit cross-check',
+      },
+    ],
+  },
+  curiosity_rover: {
+    deviceId: 'curiosity_rover',
+    modelVersion: '1.0.0 (NASA/JPL-Caltech 24584_Curiosity_static.glb · fit-longest-side-2 · 1 MSL node)',
+    generalDisclaimer:
+      'Rendered from the official NASA/JPL-Caltech static Curiosity GLB (single unified MSL node). Camera views frame external instruments illustratively; individual subsystems cannot be isolated or articulated.',
+    cameraViews: [
+      {
+        id: 'overview',
+        label: '3/4 Rover Overview',
+        position: [2.2, 1.18, 2.2],
+        target: [0, 0.02, 0],
+        summary:
+          'Full 3/4 view of Curiosity (Mars Science Laboratory) showing the 6-wheel rocker-bogie suspension, robotic arm, camera mast, and aft MMRTG.',
+        sourceRef: 'NASA Mars Science Laboratory Launch Press Kit & 24584_Curiosity_static.glb',
+        isIllustrativeView: true,
+      },
+      {
+        id: 'chemcam_mast',
+        label: 'ChemCam & Mastcam Head',
+        position: [-0.95, 0.95, 1.25],
+        target: [-0.15, 0.48, 0.35],
+        summary:
+          'Close view of the Remote Sensing Mast head carrying ChemCam laser-induced breakdown spectrometer, Mastcam stereo cameras, and Navcams.',
+        sourceRef: 'NASA MSL ChemCam & Mastcam Instrument Fact Sheet',
+        isIllustrativeView: true,
+      },
+      {
+        id: 'mahli_turret',
+        label: 'Sampling Arm & MAHLI Turret',
+        position: [0.95, 0.32, 1.68],
+        target: [0.05, -0.05, 0.65],
+        summary:
+          'Close inspection of the 2.1 m forward robotic arm holding APXS, MAHLI hand lens imager, CHIMRA scoop/sieve, and rotary-percussive drill.',
+        sourceRef: 'NASA MSL Sample Acquisition & Turret Guide',
+        isIllustrativeView: true,
+      },
+      {
+        id: 'rtg_aft',
+        label: 'Aft MMRTG & High-Gain Dish',
+        position: [-1.5, 0.65, -1.6],
+        target: [0, 0.05, -0.62],
+        summary:
+          'Rear deck view showcasing the diagonally canted Pu-238 MMRTG radiator fins, high-gain X-band dish antenna, and UHF whip antenna.',
+        sourceRef: 'NASA MSL Power & Communications Overview',
+        isIllustrativeView: true,
+      },
+    ],
+    partGroups: [
+      {
+        id: 'all',
+        label: 'Complete Static MSL Mesh (1 node)',
+        nodeNames: [...CURIOSITY_ALL_NODES],
+        documentedSpec:
+          'Launch mass 899 kg (dimensions ~3.0 m × 2.7 m × 2.2 m); nuclear-powered Mars Science Laboratory laboratory rover operating in Gale Crater since 2012.',
+        sourceRef: 'NASA MSL Fact Sheet & NASA 3D Resources (24584_Curiosity_static.glb)',
+        limitationNote:
+          'The official NASA static GLB merges all rover structures into a single node (`MSL`), so individual subsystems cannot be isolated in 3D highlight mode.',
+        isControlVerified: true,
+      },
+    ],
+    sources: [
+      {
+        title: 'NASA 3D Resources · Curiosity Rover 3D Model (MSL)',
+        url: 'https://science.nasa.gov/resource/curiosity-rover-3d-model/',
+        checked: '2026-11-14',
+        version: '24584_Curiosity_static.glb (static unified MSL mesh)',
+      },
+      {
+        title: 'NASA MSL Provenance Notes',
+        url: '/assets/provenance/mars-rovers.csv',
+        checked: '2026-11-14',
+        version: 'Gale Crater landing coordinates & MSL instrument cross-check',
       },
     ],
   },

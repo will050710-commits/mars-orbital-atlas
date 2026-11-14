@@ -28,16 +28,22 @@ export type {
 
 const INITIAL_POV_STATE: {
   inspectionMode: InspectionViewMode;
+  orbitalCloseup: boolean;
   povYawDeg: number;
   povPitchDeg: number;
   povFovZoom: 1 | 2 | 4;
   povSensorMode: SensorFilterMode;
+  povArmDeployed: boolean;
+  povScanActive: boolean;
 } = {
   inspectionMode: 'MODEL_CLOSEUP',
+  orbitalCloseup: false,
   povYawDeg: 0,
   povPitchDeg: -8,
   povFovZoom: 1,
   povSensorMode: 'OPTICAL_RGB',
+  povArmDeployed: false,
+  povScanActive: false,
 };
 
 const INITIAL_DEVICE_CONTROL_STATE: {
@@ -64,10 +70,13 @@ interface CosmosState {
   rotorStepDeg: RotorStepDeg;
   rotorStepTick: number;
   inspectionMode: InspectionViewMode;
+  orbitalCloseup: boolean;
   povYawDeg: number;
   povPitchDeg: number;
   povFovZoom: 1 | 2 | 4;
   povSensorMode: SensorFilterMode;
+  povArmDeployed: boolean;
+  povScanActive: boolean;
   showOrbits: boolean;
   showPOIs: boolean;
   selectBody: (bodyId: BodyId) => void;
@@ -80,9 +89,12 @@ interface CosmosState {
   setRotorStepDeg: (deg: RotorStepDeg) => void;
   resetDeviceControl: () => void;
   setInspectionMode: (mode: InspectionViewMode) => void;
+  setOrbitalCloseup: (enabled: boolean) => void;
   setPovOrientation: (yawDeg: number, pitchDeg: number) => void;
   setPovFovZoom: (zoom: 1 | 2 | 4) => void;
   setPovSensorMode: (mode: SensorFilterMode) => void;
+  togglePovArm: () => void;
+  togglePovScan: () => void;
   resetPovCamera: () => void;
   toggleOrbits: () => void;
   togglePOIs: () => void;
@@ -170,6 +182,7 @@ export const useCosmosStore = create<CosmosState>()(
         viewStage: available ? 'SUB_SCENE' : 'ORBITAL_OVERVIEW',
         controlsLocked: false,
         assetLoad: keepReady ? current.assetLoad : { status: available ? 'loading' : 'unavailable' },
+        ...(state.spectralMode === 'TERRAIN_MESH_3D' ? { spectralMode: 'VISUAL_RGB' as const } : {}),
         ...INITIAL_DEVICE_CONTROL_STATE,
         ...INITIAL_POV_STATE,
         deviceCameraTick: state.deviceCameraTick + 1,
@@ -197,6 +210,7 @@ export const useCosmosStore = create<CosmosState>()(
         deviceCameraTick: state.deviceCameraTick + 1,
         rotorStepTick: state.rotorStepTick + 1,
       })),
+    setOrbitalCloseup: (enabled) => set({ orbitalCloseup: enabled }),
     setInspectionMode: (mode) =>
       set((state) => {
         const hasDevice = Boolean(state.activeDeviceId);
@@ -210,7 +224,12 @@ export const useCosmosStore = create<CosmosState>()(
           viewStage: nextStage,
           controlsLocked: false,
           ...(mode === 'CONTROL_ROOM_POV'
-            ? { povYawDeg: 0, povPitchDeg: -8, povFovZoom: 1 as const }
+            ? {
+                orbitalCloseup: false,
+                povYawDeg: 0,
+                povPitchDeg: -8,
+                povFovZoom: 1 as const,
+              }
             : {}),
         };
       }),
@@ -221,7 +240,16 @@ export const useCosmosStore = create<CosmosState>()(
       }),
     setPovFovZoom: (zoom) => set({ povFovZoom: zoom }),
     setPovSensorMode: (mode) => set({ povSensorMode: mode }),
-    resetPovCamera: () => set({ povYawDeg: 0, povPitchDeg: -8, povFovZoom: 1 }),
+    togglePovArm: () => set((state) => ({ povArmDeployed: !state.povArmDeployed })),
+    togglePovScan: () => set((state) => ({ povScanActive: !state.povScanActive })),
+    resetPovCamera: () =>
+      set({
+        povYawDeg: 0,
+        povPitchDeg: -8,
+        povFovZoom: 1,
+        povArmDeployed: false,
+        povScanActive: false,
+      }),
     toggleOrbits: () => set((state) => ({ showOrbits: !state.showOrbits })),
     togglePOIs: () => set((state) => ({ showPOIs: !state.showPOIs })),
     viewStage: 'ORBITAL_OVERVIEW',

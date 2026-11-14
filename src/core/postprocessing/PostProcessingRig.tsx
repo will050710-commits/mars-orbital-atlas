@@ -1,21 +1,20 @@
 import React from 'react';
 import type * as THREE from 'three';
-import { EffectComposer, SelectiveBloom, Vignette, SMAA } from '@react-three/postprocessing';
+import { EffectComposer, Bloom, Vignette, SMAA } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 
 export interface PostProcessingRigProps {
-  sunLightRef: React.RefObject<THREE.DirectionalLight | null>;
+  sunLightRef?: React.RefObject<THREE.DirectionalLight | null>;
 }
 
-export const PostProcessingRig: React.FC<PostProcessingRigProps> = ({ sunLightRef }) => {
+export const PostProcessingRig: React.FC<PostProcessingRigProps> = () => {
   return (
     <EffectComposer multisampling={0} enableNormalPass={false}>
       <SMAA />
-      <SelectiveBloom
-        lights={[sunLightRef as React.RefObject<THREE.Object3D>]}
-        intensity={1.8}
-        luminanceThreshold={0.85} // Chỉ lấy các điểm có cường độ phát xạ > 0.85 (HDR)
-        luminanceSmoothing={0.2}
+      <Bloom
+        intensity={1.15}
+        luminanceThreshold={0.9}
+        luminanceSmoothing={0.25}
         mipmapBlur
       />
       <Vignette

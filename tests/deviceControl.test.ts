@@ -10,10 +10,14 @@ import {
   Vector3,
 } from 'three';
 import { DEVICE_CATALOG } from '../src/config/deviceCatalog';
+import { ORBITAL_ACTORS_CATALOG } from '../src/config/celestialCatalog';
+import { DEVICE_DOSSIERS, getDossierById } from '../src/config/deviceDossiers';
 import {
+  CURIOSITY_ALL_NODES,
   DEVICE_CONTROL_SPECS,
   INGENUITY_ALL_NODES,
   INSIGHT_ALL_NODES,
+  PERSEVERANCE_ALL_NODES,
   getDeviceControlSpec,
 } from '../src/config/deviceControlSpecs';
 import { validateDeviceControlSpecs } from '../src/config/validateCatalog';
@@ -62,6 +66,43 @@ test('InSight GLB binary nodes match verified 83-node control spec map', () => {
   assert.equal(insightSpec.cameraViews.length, 4);
   assert.ok(insightSpec.partGroups.some((group) => group.id === 'robotic_arm'));
   assert.ok(insightSpec.partGroups.some((group) => group.id === 'solar_wings'));
+});
+
+test('Perseverance and Curiosity GLB binary nodes match documented control spec node maps', () => {
+  const parseNodeNames = (relPath: string) => {
+    const glbPath = path.resolve(process.cwd(), relPath);
+    const glb = fs.readFileSync(glbPath);
+    assert.equal(glb.toString('utf8', 0, 4), 'glTF');
+    const jsonLength = glb.readUInt32LE(12);
+    const chunkType = glb.readUInt32LE(16);
+    assert.equal(chunkType, 0x4e4f534a);
+    const gltf = JSON.parse(glb.toString('utf8', 20, 20 + jsonLength)) as {
+      nodes?: Array<{ name?: string }>;
+    };
+    return (gltf.nodes ?? [])
+      .map((node) => node.name)
+      .filter((name): name is string => Boolean(name))
+      .sort();
+  };
+
+  const perseveranceNodes = parseNodeNames('public/assets/models/mars/perseverance_rover.glb');
+  assert.equal(perseveranceNodes.length, 66);
+  assert.deepEqual(perseveranceNodes, [...PERSEVERANCE_ALL_NODES].sort());
+  const perseveranceSpec = getDeviceControlSpec('perseverance_rover');
+  assert.ok(perseveranceSpec);
+  assert.equal(perseveranceSpec.cameraViews.length, 4);
+  assert.ok(perseveranceSpec.partGroups.some((group) => group.id === 'optics_mast'));
+  assert.ok(perseveranceSpec.partGroups.some((group) => group.id === 'robotic_arm'));
+  assert.ok(perseveranceSpec.partGroups.some((group) => group.id === 'mobility_chassis'));
+  assert.ok(perseveranceSpec.partGroups.some((group) => group.id === 'power_thermal'));
+
+  const curiosityNodes = parseNodeNames('public/assets/models/mars/curiosity_rover.glb');
+  assert.deepEqual(curiosityNodes, [...CURIOSITY_ALL_NODES].sort());
+  const curiositySpec = getDeviceControlSpec('curiosity_rover');
+  assert.ok(curiositySpec);
+  assert.equal(curiositySpec.cameraViews.length, 4);
+  assert.equal(curiositySpec.partGroups.length, 1);
+  assert.equal(curiositySpec.partGroups[0].id, 'all');
 });
 
 test('Control Room POV and Option 1/Option 2 mode state clamps orientation and resets across transitions', () => {
@@ -292,4 +333,62 @@ test('runtime helpers isolate shared materials and apply opposite-sense coaxial 
       else mat.dispose();
     }
   });
+});
+
+test('DEVICE_DOSSIERS covers all 18 catalog devices and all orbital actors with complete mission data', () => {
+  assert.equal(DEVICE_CATALOG.length, 18);
+  for (const device of DEVICE_CATALOG) {
+    const dossier = getDossierById(device.id);
+    assert.ok(dossier, `Missing dossier for device ${device.id}`);
+    assert.ok(dossier.biography.trim().length > 20, `Empty biography for ${device.id}`);
+    assert.ok(dossier.technicalSpecs.length >= 2, `Expected technicalSpecs for ${device.id}`);
+    assert.ok(dossier.measuredData.length >= 1, `Expected measuredData for ${device.id}`);
+    assert.ok(dossier.contributions.length >= 1, `Expected contributions for ${device.id}`);
+    assert.ok(dossier.modelDisclaimer.trim().length > 10, `Missing modelDisclaimer for ${device.id}`);
+  }
+
+  for (const actor of ORBITAL_ACTORS_CATALOG) {
+    const dossier = getDossierById(actor.id);
+    assert.ok(dossier, `Missing dossier for orbital actor ${actor.id}`);
+    assert.ok(dossier.biography.trim().length > 20, `Empty biography for ${actor.id}`);
+    assert.ok(dossier.technicalSpecs.length >= 1, `Expected technicalSpecs for ${actor.id}`);
+    assert.ok(dossier.measuredData.length >= 1, `Expected measuredData for ${actor.id}`);
+    assert.ok(dossier.contributions.length >= 1, `Expected contributions for ${actor.id}`);
+  }
+
+  assert.ok(Object.keys(DEVICE_DOSSIERS).length >= 26);
+});
+
+test('Control Room POV arm deployment and spectrometer scan toggle and reset cleanly', () => {
+  const store = useCosmosStore;
+  store.getState().selectBody('mars');
+  store.getState().selectDevice('perseverance_rover');
+  store.getState().setInspectionMode('CONTROL_ROOM_POV');
+
+  assert.equal(store.getState().povArmDeployed, false);
+  assert.equal(store.getState().povScanActive, false);
+
+  store.getState().togglePovArm();
+  store.getState().togglePovScan();
+  assert.equal(store.getState().povArmDeployed, true);
+  assert.equal(store.getState().povScanActive, true);
+
+  store.getState().resetPovCamera();
+  assert.equal(store.getState().povArmDeployed, false);
+  assert.equal(store.getState().povScanActive, false);
+
+  store.getState().togglePovArm();
+  store.getState().togglePovScan();
+  store.getState().selectDevice('curiosity_rover');
+  assert.equal(store.getState().povArmDeployed, false);
+  assert.equal(store.getState().povScanActive, false);
+
+  store.getState().togglePovScan();
+  store.getState().selectBody('moon');
+  assert.equal(store.getState().povScanActive, false);
+
+  store.getState().selectDevice('apollo_17_lrv');
+  store.getState().togglePovArm();
+  store.getState().returnToOrbit();
+  assert.equal(store.getState().povArmDeployed, false);
 });

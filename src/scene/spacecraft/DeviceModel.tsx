@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { MathUtils } from 'three';
-import type { Group, Object3D } from 'three';
+import { LinearMipmapLinearFilter, MathUtils, Mesh, MeshStandardMaterial } from 'three';
+import type { Group, Object3D, Texture } from 'three';
 import { getDeviceControlSpec } from '../../config/deviceControlSpecs';
 import { assetManager } from '../../core/loaders/AssetStreamManager';
 import { classifyAssetError, disposeModel, normalizePreview } from '../../core/loaders/modelResources';
@@ -41,6 +41,28 @@ export function DeviceModel({ device }: { device: DeviceRecord }) {
       owned = scene;
       scene.rotation.set(...device.transform.rotation);
       const normalized = normalizePreview(scene);
+      const maxAnisotropy = Math.min(8, gl.capabilities.getMaxAnisotropy());
+      normalized.traverse((obj) => {
+        if (!(obj instanceof Mesh)) return;
+        const materials = Array.isArray(obj.material) ? obj.material : [obj.material];
+        for (const mat of materials) {
+          if (!(mat instanceof MeshStandardMaterial)) continue;
+          const texList: Array<Texture | null> = [
+            mat.map,
+            mat.normalMap,
+            mat.roughnessMap,
+            mat.metalnessMap,
+            mat.aoMap,
+            mat.emissiveMap,
+          ];
+          for (const tex of texList) {
+            if (!tex) continue;
+            tex.minFilter = LinearMipmapLinearFilter;
+            tex.anisotropy = maxAnisotropy;
+            tex.needsUpdate = true;
+          }
+        }
+      });
       if (spec) {
         nodeMapRef.current = prepareControlledDeviceScene(normalized);
       }

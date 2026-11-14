@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { Line } from '@react-three/drei';
 import * as THREE from 'three';
 import {
   MARS_AXIAL_TILT_RAD,
@@ -7,6 +6,7 @@ import {
 } from '../../config/celestialCatalog';
 import { useCosmosStore } from '../../store/useCosmosStore';
 import type { BodyConfig } from '../../types/cosmos.types';
+import { NativeOrbitLine } from '../common/NativeOrbitLine';
 import { SUN_DIRECTION_VECTOR } from '../environment/SunLightSource';
 
 /**
@@ -70,47 +70,34 @@ export function PlanetaryOrbitContext({ body }: { body: BodyConfig }) {
   return (
     <group>
       {/* Heliocentric (Mars) or geocentric (Moon) orbital path arc */}
-      <Line
+      <NativeOrbitLine
         points={trajectoryArcPoints}
         color={body.id === 'mars' ? '#f59e0b' : '#94a3b8'}
         opacity={0.34}
         transparent
-        dashed
-        dashSize={650}
-        gapSize={420}
-        lineWidth={1.3}
       />
 
       {/* Solar direction reference ray */}
-      <Line
+      <NativeOrbitLine
         points={sunVectorPoints}
         color="#fde047"
         opacity={0.45}
         transparent
-        dashed
-        dashSize={450}
-        gapSize={300}
-        lineWidth={1.2}
       />
 
       {/* Obliquity polar axis & equatorial plane reference ring */}
       <group rotation={[0, 0, tiltRad]}>
-        <Line
+        <NativeOrbitLine
           points={equatorialRingPoints}
           color="#38bdf8"
           opacity={0.22}
           transparent
-          lineWidth={1}
         />
-        <Line
+        <NativeOrbitLine
           points={poleAxisPoints}
           color="#e2e8f0"
           opacity={0.4}
           transparent
-          dashed
-          dashSize={240}
-          gapSize={180}
-          lineWidth={1.2}
         />
       </group>
     </group>

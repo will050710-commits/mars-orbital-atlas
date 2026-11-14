@@ -150,16 +150,36 @@ function createProceduralMoonTerrainMesh(
   heightScale: number,
 ): THREE.Group {
   const depth = footprintWidth * 0.5;
-  const geom = new THREE.PlaneGeometry(footprintWidth, depth, 96, 64);
+  const geom = new THREE.PlaneGeometry(footprintWidth, depth, 144, 96);
   geom.rotateX(-Math.PI / 2);
 
   const pos = geom.getAttribute('position');
   const s = hashSeed(seed);
+  const isComplexCrater = seed.includes('tycho') || seed.includes('copernicus');
+  const isHadleyRille = seed.includes('hadley') || seed.includes('15');
+  const isTaurusLittrow = seed.includes('taurus') || seed.includes('17');
+
   const craters = [
-    { x: (s - 0.5) * footprintWidth * 0.35, z: (0.3 - s * 0.6) * depth * 0.35, r: footprintWidth * 0.16, d: 0.42 },
-    { x: (0.45 - s * 0.8) * footprintWidth * 0.4, z: (s - 0.45) * depth * 0.4, r: footprintWidth * 0.11, d: 0.28 },
-    { x: -footprintWidth * 0.22, z: depth * 0.18, r: footprintWidth * 0.08, d: 0.2 },
-    { x: footprintWidth * 0.26, z: -depth * 0.16, r: footprintWidth * 0.09, d: 0.22 },
+    {
+      x: (s - 0.5) * footprintWidth * 0.22,
+      z: (0.25 - s * 0.5) * depth * 0.22,
+      r: footprintWidth * (isComplexCrater ? 0.24 : 0.16),
+      d: isComplexCrater ? 0.62 : 0.44,
+      peak: isComplexCrater ? 0.34 : 0.12,
+    },
+    {
+      x: (0.45 - s * 0.8) * footprintWidth * 0.38,
+      z: (s - 0.45) * depth * 0.38,
+      r: footprintWidth * 0.11,
+      d: 0.32,
+      peak: 0.08,
+    },
+    { x: -footprintWidth * 0.26, z: depth * 0.2, r: footprintWidth * 0.085, d: 0.24, peak: 0 },
+    { x: footprintWidth * 0.28, z: -depth * 0.18, r: footprintWidth * 0.095, d: 0.26, peak: 0.06 },
+    { x: -footprintWidth * 0.12, z: -depth * 0.26, r: footprintWidth * 0.06, d: 0.18, peak: 0 },
+    { x: footprintWidth * 0.16, z: depth * 0.24, r: footprintWidth * 0.055, d: 0.16, peak: 0 },
+    { x: -footprintWidth * 0.34, z: -depth * 0.08, r: footprintWidth * 0.045, d: 0.14, peak: 0 },
+    { x: footprintWidth * 0.35, z: depth * 0.11, r: footprintWidth * 0.05, d: 0.15, peak: 0 },
   ];
 
   for (let i = 0; i < pos.count; i += 1) {
@@ -167,14 +187,34 @@ function createProceduralMoonTerrainMesh(
     const z = pos.getZ(i);
     let y =
       Math.sin(x * 0.55 + s * 6.28) * Math.cos(z * 0.62 - s * 3.1) * 0.18 +
-      Math.sin(x * 1.4 - z * 1.1) * 0.06;
+      Math.sin(x * 1.4 - z * 1.1) * 0.07 +
+      Math.cos(x * 3.8 + z * 3.2) * 0.025;
+
+    // Hadley Rille sinuous canyon groove for Apollo 15 site
+    if (isHadleyRille) {
+      const rilleCenterX = Math.sin(z * 0.45 + 0.6) * footprintWidth * 0.12 - footprintWidth * 0.18;
+      const rilleDist = Math.abs(x - rilleCenterX) / (footprintWidth * 0.065);
+      if (rilleDist < 1.5) {
+        y -= Math.exp(-rilleDist * rilleDist * 1.8) * 0.42;
+      }
+    }
+
+    // Taurus-Littrow North & South Massif flanking ridges for Apollo 17 site
+    if (isTaurusLittrow) {
+      const massifFactor = Math.pow(Math.abs(z) / (depth * 0.5), 2.2);
+      y += massifFactor * 0.52;
+    }
 
     for (const crater of craters) {
       const dist = Math.hypot(x - crater.x, z - crater.z) / crater.r;
-      if (dist < 1.35) {
-        const bowl = Math.max(0, 1 - dist * dist);
-        const rim = Math.exp(-Math.pow((dist - 0.92) / 0.14, 2)) * crater.d * 0.38;
-        y += rim - bowl * crater.d;
+      if (dist < 1.55) {
+        const bowl = dist < 1.0 ? Math.max(0, 1 - Math.pow(dist, 2.2)) : 0;
+        const rim = Math.exp(-Math.pow((dist - 1.0) / 0.15, 2)) * crater.d * 0.48;
+        const peak =
+          crater.peak > 0 && dist < 0.35
+            ? Math.exp(-Math.pow(dist / 0.14, 2)) * crater.peak
+            : 0;
+        y += rim - bowl * crater.d + peak;
       }
     }
     pos.setY(i, y * heightScale + 0.35 * heightScale);
@@ -183,9 +223,9 @@ function createProceduralMoonTerrainMesh(
   geom.computeVertexNormals();
 
   const material = new THREE.MeshStandardMaterial({
-    color: '#c9ccd1',
-    roughness: 0.92,
-    metalness: 0.04,
+    color: '#d4d6dc',
+    roughness: 0.9,
+    metalness: 0.05,
   });
   const mesh = new THREE.Mesh(geom, material);
   mesh.name = 'ProceduralMoonRegolith';

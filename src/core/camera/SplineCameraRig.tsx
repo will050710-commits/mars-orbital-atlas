@@ -33,10 +33,10 @@ export function SplineCameraRig() {
   const deviceCameraViewId = useCosmosStore((state) => state.deviceCameraViewId);
   const deviceCameraTick = useCosmosStore((state) => state.deviceCameraTick);
   const inspectionMode = useCosmosStore((state) => state.inspectionMode);
+  const orbitalCloseup = useCosmosStore((state) => state.orbitalCloseup);
   const povYawDeg = useCosmosStore((state) => state.povYawDeg);
   const povPitchDeg = useCosmosStore((state) => state.povPitchDeg);
   const povFovZoom = useCosmosStore((state) => state.povFovZoom);
-  const viewStage = useCosmosStore((state) => state.viewStage);
   const spectralMode = useCosmosStore((state) => state.spectralMode);
   const target = useCosmosStore((state) => state.activeTarget);
   const reset = useCosmosStore((state) => state.cameraResetTick);
@@ -46,14 +46,21 @@ export function SplineCameraRig() {
   const isControlRoomPov = inspectionMode === 'CONTROL_ROOM_POV' && hasPovSelection;
 
   const isAvailableDevice = device?.status === 'available';
-  const isProceduralDevice = device?.status === 'unavailable' && viewStage === 'SUB_SCENE';
+  const isProceduralDevice =
+    device?.status === 'unavailable' && Boolean(device.proceduralModel);
   const isTerrainShowcase =
     spectralMode === 'TERRAIN_MESH_3D' &&
     !device &&
     (!target || target.category === 'SURFACE_POI');
+  const isOrbitalCloseup =
+    !device &&
+    Boolean(target?.modelPath) &&
+    orbitalCloseup &&
+    inspectionMode === 'MODEL_CLOSEUP';
 
   const isNormalizedCloseup =
-    !isControlRoomPov && (isAvailableDevice || isProceduralDevice || isTerrainShowcase);
+    !isControlRoomPov &&
+    (isAvailableDevice || isProceduralDevice || isTerrainShowcase || isOrbitalCloseup);
 
   const radius = BODY_CATALOG[bodyId].radiusKm;
 
@@ -124,7 +131,9 @@ export function SplineCameraRig() {
     if ((isAvailableDevice || isProceduralDevice) && deviceId) {
       orbit.minDistance = INSPECTION_MIN_DISTANCE;
       orbit.maxDistance = INSPECTION_MAX_DISTANCE;
-      useCosmosStore.getState().setViewStage('SUB_SCENE');
+      if (isAvailableDevice) {
+        useCosmosStore.getState().setViewStage('SUB_SCENE');
+      }
 
       const spec = getDeviceControlSpec(deviceId);
       const activeView = spec
@@ -170,8 +179,21 @@ export function SplineCameraRig() {
       };
     }
 
+    if (isOrbitalCloseup && !deviceId) {
+      orbit.minDistance = INSPECTION_MIN_DISTANCE;
+      orbit.maxDistance = INSPECTION_MAX_DISTANCE;
+      useCosmosStore.getState().setViewStage('SUB_SCENE');
+      camera.position.set(2.4, 1.35, 2.5);
+      orbit.target.set(0, 0, 0);
+      orbit.update();
+      return;
+    }
+
     prevDeviceIdRef.current = null;
-    orbit.minDistance = radius * 0.08;
+    orbit.minDistance =
+      target && (target.category === 'MOON' || target.category === 'SPACECRAFT')
+        ? Math.max(80, target.radius * 1.35)
+        : radius * 0.08;
     orbit.maxDistance = radius * 25;
 
     if (!target) {
@@ -220,6 +242,7 @@ export function SplineCameraRig() {
     isAvailableDevice,
     isControlRoomPov,
     isNormalizedCloseup,
+    isOrbitalCloseup,
     isProceduralDevice,
     isTerrainShowcase,
     target,

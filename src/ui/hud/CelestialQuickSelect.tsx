@@ -37,20 +37,6 @@ export function CelestialQuickSelect() {
   return (
     <aside className="hud-left-dock glass-panel" aria-label="Danh mục khám phá">
       <div className="dock-section-title">Thiên thể</div>
-      <div className="body-switcher">
-        {Object.values(BODY_CATALOG).map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            className="target-list-btn"
-            aria-pressed={item.id === bodyId}
-            onClick={() => selectBody(item.id)}
-          >
-            {item.name}
-          </button>
-        ))}
-      </div>
-
       <button
         type="button"
         className="target-list-btn"

@@ -309,23 +309,40 @@ def main():
         attribution.parent.mkdir(parents=True, exist_ok=True)
         attribution.write_bytes(archive.read('Mars/Attributions.txt'))
 
-    # Register existing on-disk MRO orbiter GLB into verified Mars path for catalog parity
+    # Register on-disk official MRO orbiter GLB (preferring downloaded official NASA 24884_MRO.glb)
     mro_src = ROOT / 'public/assets/models/spacecraft/mars_reconnaissance_orbiter.glb'
-    if mro_src.exists():
-        mro_data = mro_src.read_bytes()
-        mro_dst = ROOT / 'public/assets/models/mars/mro_orbiter.glb'
-        mro_dst.write_bytes(mro_data)
+    mro_dst = ROOT / 'public/assets/models/mars/mro_orbiter.glb'
+    if (mro_dst.exists() and mro_dst.stat().st_size > 100_000) or mro_src.exists():
+        if mro_dst.exists() and mro_dst.stat().st_size > 100_000:
+            mro_data = mro_dst.read_bytes()
+            mro_evidence = 'Official NASA 3D Resources (24884_MRO.glb)'
+            mro_source_url = 'https://science.nasa.gov/resource/mars-reconnaissance-orbiter-3d-model/'
+            mro_version = '24884_MRO.glb'
+            mro_credit = 'NASA/JPL-Caltech (official NASA 3D Resources)'
+            mro_record_version = '1.1.0'
+            mro_summary = 'Official NASA 3D Resources reference GLB for MRO; shape reference only — no operational telemetry or physical scale simulation.'
+        else:
+            mro_data = mro_src.read_bytes()
+            mro_dst.write_bytes(mro_data)
+            mro_evidence = 'public/assets/models/spacecraft/mars_reconnaissance_orbiter.glb'
+            mro_source_url = 'https://mars.nasa.gov/mro/'
+            mro_version = 'Repository Draco GLB asset'
+            mro_credit = 'NASA/JPL-Caltech (workspace spacecraft GLB)'
+            mro_record_version = '1.0.0'
+            mro_summary = 'Shape reference model; does not simulate operations or verify physical dimensions.'
         mro_rec = base_record(
             'mro_orbiter',
             'Mars Reconnaissance Orbiter (MRO)',
             'Orbiter',
-            'https://mars.nasa.gov/mro/',
-            'NASA/JPL-Caltech (workspace spacecraft GLB)',
+            mro_source_url,
+            mro_credit,
             'NASA media usage guidelines',
             NASA_TERMS,
         )
-        mro_rec['evidence'] = 'public/assets/models/spacecraft/mars_reconnaissance_orbiter.glb'
-        mro_rec['source']['version'] = 'Repository Draco GLB asset'
+        mro_rec['evidence'] = mro_evidence
+        mro_rec['source']['version'] = mro_version
+        mro_rec['summary'] = mro_summary
+        mro_rec['version'] = mro_record_version
         mro_rec.update(
             status='available',
             modelPath='/assets/models/mars/mro_orbiter.glb',
@@ -334,24 +351,75 @@ def main():
         )
         records.append(mro_rec)
 
-    for asset_id, name, proc_kind, coords in [
-        ('curiosity_rover', 'Curiosity', 'mars_rover_rtg', {'lat': -4.5895, 'lon': 137.4417}),
-        ('perseverance_rover', 'Perseverance', 'mars_rover_rtg', {'lat': 18.38, 'lon': 77.58}),
-    ]:
-        record = base_record(asset_id, name, 'Rover', '', 'NASA references named in supplied device notes', 'No model supplied', '')
-        record.update(
-            status='unavailable',
-            proceduralModel=proc_kind,
-            coordinates=coords,
-        )
-        record['summary'] = 'Có trong tài liệu; chưa có GLB NASA gốc xác minh. Hỗ trợ mô hình 3D tái dựng minh họa & góc nhìn buồng điều khiển.'
-        record['evidence'] = 'Thitb-Tiliunndng-Nidungclichothitkgcnhn (1).csv'
-        record['source'] = dict(
-            title=record['evidence'],
-            url='/assets/provenance/mars-rovers.csv',
-            checked='2026-11-14',
-            version='User-supplied notes; undated',
-        )
+    rover_glbs = [
+        (
+            'curiosity_rover',
+            'Curiosity',
+            'mars_rover_rtg',
+            {'lat': -4.5895, 'lon': 137.4417},
+            ROOT / 'public/assets/models/mars/curiosity_rover.glb',
+            'NASA 3D Resources — Curiosity Rover 3D Model (MSL)',
+            'https://science.nasa.gov/resource/curiosity-rover-3d-model/',
+            '24584_Curiosity_static.glb',
+            'Official NASA/JPL-Caltech Curiosity (MSL) 3D model; single static glTF mesh at nominal surface configuration (Gale Crater, Aeolis Palus).',
+        ),
+        (
+            'perseverance_rover',
+            'Perseverance',
+            'mars_rover_rtg',
+            {'lat': 18.38, 'lon': 77.58},
+            ROOT / 'public/assets/models/mars/perseverance_rover.glb',
+            'NASA 3D Resources — Mars Perseverance Rover 3D Model',
+            'https://science.nasa.gov/resource/mars-perseverance-rover-3d-model/',
+            '25042_Perseverance.glb',
+            'Official NASA/JPL-Caltech Perseverance (Mars 2020) 3D model with 66 named hardware nodes across mobility, Mastcam-Z/SuperCam mast, robotic arm/PIXL turret, and MMRTG/RIMFAX subsystems.',
+        ),
+    ]
+
+    available_extra_count = 0
+    for asset_id, name, proc_kind, coords, glb_path, src_title, src_url, src_ver, glb_summary in rover_glbs:
+        if glb_path.exists():
+            glb_bytes = glb_path.read_bytes()
+            record = base_record(
+                asset_id,
+                name,
+                'Rover',
+                src_url,
+                'NASA/JPL-Caltech (official NASA 3D Resources)',
+                'NASA media usage guidelines',
+                NASA_TERMS,
+            )
+            record['summary'] = glb_summary
+            record['evidence'] = f'Official NASA 3D Resources ({src_ver}); landing site and mission metadata cross-checked against Thitb-Tiliunndng-Nidungclichothitkgcnhn (1).csv'
+            record['source'] = dict(
+                title=src_title,
+                url=src_url,
+                checked='2026-11-14',
+                version=src_ver,
+            )
+            record.update(
+                status='available',
+                modelPath=f'/assets/models/mars/{asset_id}.glb',
+                bytes=len(glb_bytes),
+                sha256=hashlib.sha256(glb_bytes).hexdigest(),
+                coordinates=coords,
+            )
+            available_extra_count += 1
+        else:
+            record = base_record(asset_id, name, 'Rover', '', 'NASA references named in supplied device notes', 'No model supplied', '')
+            record.update(
+                status='unavailable',
+                proceduralModel=proc_kind,
+                coordinates=coords,
+            )
+            record['summary'] = 'Có trong tài liệu; chưa có GLB NASA gốc xác minh. Hỗ trợ mô hình 3D tái dựng minh họa & góc nhìn buồng điều khiển.'
+            record['evidence'] = 'Thitb-Tiliunndng-Nidungclichothitkgcnhn (1).csv'
+            record['source'] = dict(
+                title=record['evidence'],
+                url='/assets/provenance/mars-rovers.csv',
+                checked='2026-11-14',
+                version='User-supplied notes; undated',
+            )
         records.append(record)
 
     records.extend(moon_record(*entry) for entry in MOON_DEVICES)
@@ -360,7 +428,8 @@ def main():
         encoding='utf-8',
     )
     import_mars_terrain_and_textures()
-    print(f'Imported {len(ZIP_MODELS) + 1} available GLBs; {len(records)} catalog records.')
+    mro_count = 1 if mro_src.exists() else 0
+    print(f'Imported {len(ZIP_MODELS) + mro_count + available_extra_count} available GLBs; {len(records)} catalog records.')
 
 
 if __name__ == '__main__':

@@ -12,19 +12,31 @@ const moonDevices = [
 const buttonContaining = (page: Page, label: string) =>
   page.getByRole('button', { name: new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) });
 
-test('Moon globe, sourced POIs and six documented Apollo records without GLB requests', async ({ page }) => {
+const ORBITAL_MOON_GLBS = new Set([
+  '/assets/models/moons/lro_orbiter.glb',
+  '/assets/models/moons/apollo_csm.glb',
+]);
+
+const pathFromUrl = (rawUrl: string) => new URL(rawUrl).pathname;
+
+test('Moon globe, orbital GLBs, sourced POIs and six documented Apollo records without surface GLB requests', async ({ page }) => {
   const errors: string[] = [];
-  const models: string[] = [];
+  const moonModels: string[] = [];
+  let onMoon = false;
   page.on('pageerror', (error) => errors.push(error.message));
-  page.on('request', (request) => { if (request.url().endsWith('.glb')) models.push(request.url()); });
+  page.on('request', (request) => {
+    if (onMoon && request.url().endsWith('.glb')) moonModels.push(pathFromUrl(request.url()));
+  });
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Mars');
+  onMoon = true;
   await page.getByRole('button', { name: 'Mặt Trăng · Moon' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Moon');
   await expect(page.locator('canvas')).toBeVisible();
   await expect(page.getByText('Globe minh họa · chưa có ảnh / địa hình đo đạc')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Ảnh bề mặt · unavailable' })).toBeDisabled();
-  expect(models).toEqual([]);
+  await expect.poll(() => new Set(moonModels).size, { timeout: 30000 }).toBe(2);
+  expect(moonModels.every((path) => ORBITAL_MOON_GLBS.has(path))).toBeTruthy();
 
   await page.getByRole('button', { name: /Mare Tranquillitatis/ }).click();
   await expect(page.getByLabel('Thông tin và nguồn')).toContainText('8.35°');
@@ -47,6 +59,7 @@ test('Moon globe, sourced POIs and six documented Apollo records without GLB req
   await page.getByRole('button', { name: 'Trở về toàn cảnh', exact: true }).click();
   await page.screenshot({ path: 'test-results/moon-globe.png' });
 
+  const countBeforeApolloDevices = moonModels.length;
   for (const name of moonDevices) {
     await buttonContaining(page, name).click();
     await expect(page.getByTestId('model-status')).toHaveText('Chưa có mô hình 3D được xác minh');
@@ -54,7 +67,8 @@ test('Moon globe, sourced POIs and six documented Apollo records without GLB req
     await expect(panel).not.toContainText('Tệp ghi công gốc');
     await page.getByRole('button', { name: 'Trở về toàn cảnh', exact: true }).click();
   }
-  expect(models).toEqual([]);
+  expect(moonModels.slice(countBeforeApolloDevices).every((path) => ORBITAL_MOON_GLBS.has(path))).toBeTruthy();
+  expect(moonModels.every((path) => ORBITAL_MOON_GLBS.has(path))).toBeTruthy();
   expect(errors).toEqual([]);
 });
 
@@ -145,10 +159,13 @@ test('switching from active Ingenuity controls to Moon clears device panel and r
   await page.getByRole('button', { name: 'Mặt Trăng · Moon' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Moon');
   await expect(page.getByTestId('device-control-panel')).toHaveCount(0);
+  await expect.poll(() => new Set(moonGlbRequests.map(pathFromUrl)).size, { timeout: 30000 }).toBe(2);
+  const countBeforeLrv = moonGlbRequests.length;
   await buttonContaining(page, 'Lunar Roving Vehicle (LRV)').click();
   await expect(page.getByTestId('model-status')).toHaveText('Chưa có mô hình 3D được xác minh');
   await expect(page.getByTestId('device-control-panel')).toHaveCount(0);
-  expect(moonGlbRequests).toEqual([]);
+  expect(moonGlbRequests.slice(countBeforeLrv)).toEqual([]);
+  expect(moonGlbRequests.every((url) => ORBITAL_MOON_GLBS.has(pathFromUrl(url)))).toBeTruthy();
 
   onMoon = false;
   await page.getByRole('button', { name: 'Sao Hỏa · Mars' }).click();
@@ -160,13 +177,13 @@ test('switching from active Ingenuity controls to Moon clears device panel and r
   await expect(page.getByTestId('rotor-spin-toggle')).toHaveAttribute('aria-pressed', 'false');
 });
 
-test('Moon orbital actors, Option 1 procedural Apollo LRV and Option 2 POV trigger zero GLB requests', async ({ page }) => {
+test('Moon orbital actors GLB Option 1 close-up, procedural Apollo LRV and Option 2 POV trigger zero surface Apollo GLBs', async ({ page }) => {
   const errors: string[] = [];
   const moonGlbRequests: string[] = [];
   let onMoon = false;
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('request', (request) => {
-    if (onMoon && request.url().endsWith('.glb')) moonGlbRequests.push(request.url());
+    if (onMoon && request.url().endsWith('.glb')) moonGlbRequests.push(pathFromUrl(request.url()));
   });
 
   await page.goto('/');
@@ -174,22 +191,39 @@ test('Moon orbital actors, Option 1 procedural Apollo LRV and Option 2 POV trigg
   await page.getByRole('button', { name: 'Mặt Trăng · Moon' }).click();
   await expect(page.getByTestId('orbital-actor-lro_orbiter')).toBeVisible();
   await expect(page.getByTestId('orbital-actor-apollo_csm')).toBeVisible();
+  await expect.poll(() => new Set(moonGlbRequests).size, { timeout: 30000 }).toBe(2);
 
-  await buttonContaining(page, 'Lunar Roving Vehicle (LRV)').click();
-  await expect(page.getByTestId('view-mode-closeup')).toBeVisible();
+  await page.getByTestId('orbital-actor-lro_orbiter').click();
+  await expect(page.getByTestId('dual-view-mode-switcher')).toBeVisible();
   await page.getByTestId('view-mode-closeup').click();
+  await expect(page.getByTestId('view-mode-closeup')).toHaveAttribute('aria-pressed', 'true');
+
+  const countBeforeLrv = moonGlbRequests.length;
+  await buttonContaining(page, 'Lunar Roving Vehicle (LRV)').click();
+  await expect(page.getByTestId('dual-view-mode-switcher')).toBeVisible();
+  await expect(page.getByTestId('view-mode-closeup')).toBeVisible();
   await expect(page.getByTestId('procedural-device-controls')).toBeVisible();
+  await expect(page.getByTestId('device-dossier-panel')).toBeVisible();
+  await page.getByTestId('dossier-tab-measurements').click();
+  await expect(page.getByTestId('dossier-section-measurements')).toContainText('90.6 km');
+  await page.getByTestId('dossier-tab-contributions').click();
+  await expect(page.getByTestId('dossier-section-contributions')).toContainText('286+ kg');
+  expect(moonGlbRequests.slice(countBeforeLrv)).toEqual([]);
 
   await page.getByTestId('view-mode-pov').click();
   await expect(page.getByTestId('control-room-hud')).toBeVisible();
   await expect(page.getByTestId('pov-control-deck')).toBeVisible();
   await page.getByTestId('pov-sensor-NAVCAM_MONO').click();
   await expect(page.getByTestId('control-room-hud')).toContainText('NAVCAM MONO');
+  await page.getByTestId('pov-action-arm').click();
+  await expect(page.getByTestId('pov-arm-status')).toContainText('ARM DEPLOYED');
+  await page.getByTestId('pov-action-scan').click();
+  await expect(page.getByTestId('pov-scan-readout')).toContainText('Anorthosite');
 
   await buttonContaining(page, 'Tycho').click();
   await page.getByTestId('view-mode-closeup').click();
   await expect(page.getByLabel('Thông tin và nguồn')).toContainText('Tycho');
 
-  expect(moonGlbRequests).toEqual([]);
+  expect(moonGlbRequests.every((path) => ORBITAL_MOON_GLBS.has(path))).toBeTruthy();
   expect(errors).toEqual([]);
 });

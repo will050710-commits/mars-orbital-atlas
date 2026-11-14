@@ -14,6 +14,7 @@ const SENSOR_LABELS: Record<SensorFilterMode, string> = {
  * Option 2 (`CONTROL_ROOM_POV`) is active for a device or destination.
  */
 export function ControlRoomHudOverlay() {
+  const bodyId = useCosmosStore((state) => state.activeBodyId);
   const inspectionMode = useCosmosStore((state) => state.inspectionMode);
   const activeDeviceId = useCosmosStore((state) => state.activeDeviceId);
   const activeTarget = useCosmosStore((state) => state.activeTarget);
@@ -21,6 +22,8 @@ export function ControlRoomHudOverlay() {
   const povPitchDeg = useCosmosStore((state) => state.povPitchDeg);
   const povFovZoom = useCosmosStore((state) => state.povFovZoom);
   const povSensorMode = useCosmosStore((state) => state.povSensorMode);
+  const povArmDeployed = useCosmosStore((state) => state.povArmDeployed);
+  const povScanActive = useCosmosStore((state) => state.povScanActive);
 
   if (inspectionMode !== 'CONTROL_ROOM_POV' || (!activeDeviceId && !activeTarget)) {
     return null;
@@ -29,6 +32,10 @@ export function ControlRoomHudOverlay() {
   const device = DEVICE_CATALOG.find((item) => item.id === activeDeviceId);
   const platformName = device?.name ?? activeTarget?.name ?? 'Control Station';
   const headingDeg = ((Math.round(povYawDeg) % 360) + 360) % 360;
+  const simulatedTargetReadout =
+    bodyId === 'mars'
+      ? 'Fe2O3 / Basalt · Simulated LIBS Target'
+      : 'Plagioclase / Anorthosite · Simulated Target';
 
   return (
     <div
@@ -44,6 +51,14 @@ export function ControlRoomHudOverlay() {
         </span>
         <span className="pov-pill">ZOOM {povFovZoom}×</span>
         <span className="pov-pill is-sensor">{SENSOR_LABELS[povSensorMode]}</span>
+        <span className="pov-pill" data-testid="pov-arm-status">
+          {povArmDeployed ? 'ARM DEPLOYED' : 'ARM STOWED'}
+        </span>
+        {povScanActive && (
+          <span className="pov-pill is-sensor" data-testid="pov-scan-readout">
+            SCAN · {simulatedTargetReadout}
+          </span>
+        )}
       </div>
 
       <div className="pov-reticle-center">
@@ -53,7 +68,7 @@ export function ControlRoomHudOverlay() {
       </div>
 
       <div className="pov-bottom-hint">
-        <span>Kéo chuột trên màn hình để xoay · Cuộn để zoom · Góc nhìn mô phỏng trực quan</span>
+        <span>Drag to look around · Scroll to zoom · Illustrative Control Room Simulation</span>
       </div>
     </div>
   );

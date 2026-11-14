@@ -8,6 +8,7 @@ import type {
   SourceReference,
 } from '../../types/cosmos.types';
 import { DeviceControlPanel } from './DeviceControlPanel';
+import { DeviceDossierPanel } from './DeviceDossierPanel';
 
 const PROCEDURAL_PART_GROUPS: Array<{ id: DevicePartGroupId; label: string }> = [
   { id: 'all', label: 'Toàn bộ' },
@@ -57,31 +58,46 @@ export function SubSceneInfoPanel() {
   const povPitchDeg = useCosmosStore((state) => state.povPitchDeg);
   const povFovZoom = useCosmosStore((state) => state.povFovZoom);
   const povSensorMode = useCosmosStore((state) => state.povSensorMode);
+  const povArmDeployed = useCosmosStore((state) => state.povArmDeployed);
+  const povScanActive = useCosmosStore((state) => state.povScanActive);
 
   const setViewStage = useCosmosStore((state) => state.setViewStage);
   const setSpectralMode = useCosmosStore((state) => state.setSpectralMode);
   const setInspectionMode = useCosmosStore((state) => state.setInspectionMode);
+  const setOrbitalCloseup = useCosmosStore((state) => state.setOrbitalCloseup);
   const setActivePartGroup = useCosmosStore((state) => state.setActivePartGroup);
   const setRotorSpinMode = useCosmosStore((state) => state.setRotorSpinMode);
   const setPovOrientation = useCosmosStore((state) => state.setPovOrientation);
   const setPovFovZoom = useCosmosStore((state) => state.setPovFovZoom);
   const setPovSensorMode = useCosmosStore((state) => state.setPovSensorMode);
+  const togglePovArm = useCosmosStore((state) => state.togglePovArm);
+  const togglePovScan = useCosmosStore((state) => state.togglePovScan);
   const resetPovCamera = useCosmosStore((state) => state.resetPovCamera);
+  const orbitalCloseup = useCosmosStore((state) => state.orbitalCloseup);
 
   const device = DEVICE_CATALOG.find((item) => item.id === deviceId);
   const isNonPlanetTarget = Boolean(rawTarget && rawTarget.id !== bodyId);
   const showDualModeSwitcher = Boolean(device) || isNonPlanetTarget;
   const linkedOrbitalDeviceId = rawTarget ? LINKED_ORBITAL_DEVICE_IDS[rawTarget.id] : undefined;
+  const isOrbitalTargetWithoutDevice = Boolean(
+    rawTarget &&
+      !linkedOrbitalDeviceId &&
+      (rawTarget.category === 'MOON' || rawTarget.category === 'SPACECRAFT'),
+  );
 
   const isCloseupPressed =
     inspectionMode === 'MODEL_CLOSEUP' &&
-    (!device || device.status === 'available' || viewStage === 'SUB_SCENE') &&
-    (!rawTarget || rawTarget.category !== 'SURFACE_POI' || spectralMode === 'TERRAIN_MESH_3D');
+    (!device ||
+      device.status === 'available' ||
+      Boolean(device.proceduralModel) ||
+      viewStage === 'SUB_SCENE') &&
+    (!rawTarget || rawTarget.category !== 'SURFACE_POI' || spectralMode === 'TERRAIN_MESH_3D') &&
+    (!isOrbitalTargetWithoutDevice || orbitalCloseup);
 
   const handleSelectOption1 = () => {
     if (device) {
       setInspectionMode('MODEL_CLOSEUP');
-      if (device.status === 'unavailable') {
+      if (device.status === 'unavailable' && !device.proceduralModel) {
         setViewStage('SUB_SCENE');
       }
       return;
@@ -91,11 +107,13 @@ export function SubSceneInfoPanel() {
       return;
     }
     if (rawTarget?.category === 'SURFACE_POI') {
+      setOrbitalCloseup(false);
       setInspectionMode('MODEL_CLOSEUP');
       setSpectralMode('TERRAIN_MESH_3D');
       return;
     }
     if (rawTarget) {
+      setOrbitalCloseup(true);
       setInspectionMode('MODEL_CLOSEUP');
       setViewStage('SUB_SCENE');
     }
@@ -241,6 +259,30 @@ export function SubSceneInfoPanel() {
               ))}
             </div>
           </div>
+
+          <div className="control-section">
+            <span className="control-section-label">Onboard Instrument Actuation (Illustrative)</span>
+            <div className="control-chip-grid">
+              <button
+                type="button"
+                className="control-chip-btn"
+                data-testid="pov-action-arm"
+                aria-pressed={povArmDeployed}
+                onClick={togglePovArm}
+              >
+                {povArmDeployed ? 'Stow Robotic Arm / Boom' : 'Deploy Robotic Arm / Boom'}
+              </button>
+              <button
+                type="button"
+                className="control-chip-btn"
+                data-testid="pov-action-scan"
+                aria-pressed={povScanActive}
+                onClick={togglePovScan}
+              >
+                {povScanActive ? 'Stop Spectrometer Scan' : 'Trigger Spectrometer Scan'}
+              </button>
+            </div>
+          </div>
         </section>
       )}
 
@@ -293,7 +335,7 @@ export function SubSceneInfoPanel() {
               <p className="coverage-note">
                 Hồ sơ thiết bị từ tài liệu cung cấp; không có tệp mô hình 3D NASA gốc nào được tải.
               </p>
-              {viewStage === 'SUB_SCENE' && inspectionMode === 'MODEL_CLOSEUP' && (
+              {Boolean(device.proceduralModel) && inspectionMode === 'MODEL_CLOSEUP' && (
                 <section
                   className="device-control-panel"
                   data-testid="procedural-device-controls"
@@ -381,6 +423,13 @@ export function SubSceneInfoPanel() {
             Chưa có ảnh / địa hình đo đạc định lượng theo độ phân giải thực. Các lớp địa hình và POV mang tính trực quan minh họa.
           </p>
         </>
+      )}
+
+      {(device?.id ?? rawTarget?.id) && (
+        <DeviceDossierPanel
+          key={device?.id ?? rawTarget?.id ?? 'none'}
+          targetId={device?.id ?? rawTarget?.id}
+        />
       )}
 
       <button className="hud-action-btn secondary-btn" onClick={returnToOrbit}>

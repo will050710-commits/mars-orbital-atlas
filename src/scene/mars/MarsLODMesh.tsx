@@ -14,7 +14,10 @@ import { useCosmosStore } from '../../store/useCosmosStore';
 export function MarsLODMesh({ body }: { body: BodyConfig }) {
   const spectralMode = useCosmosStore((state) => state.spectralMode);
   const [textures, setTextures] = useState<BodyPlanetaryTextures | null>(null);
-  const normalScale = useMemo(() => new Vector2(1.45, 1.45), []);
+  const normalScale = useMemo(
+    () => (body.id === 'moon' ? new Vector2(2.35, 2.35) : new Vector2(1.55, 1.55)),
+    [body.id],
+  );
 
   useEffect(() => {
     if (body.textureStyle === 'plain') {
@@ -41,7 +44,6 @@ export function MarsLODMesh({ body }: { body: BodyConfig }) {
             return;
           }
           baked = webpSet;
-          // Dispose replaced procedural textures before switching to baked 8K maps
           owned.albedo.dispose();
           owned.normal.dispose();
           owned.roughness.dispose();
@@ -80,6 +82,7 @@ export function MarsLODMesh({ body }: { body: BodyConfig }) {
   }, [spectralMode, textures]);
 
   const isFalseColor = spectralMode === 'MOLA_ELEVATION' || spectralMode === 'THERMAL_IR';
+  const materialKey = `${body.id}-${body.textureStyle}-${spectralMode}-${activeMap?.uuid ?? 'plain'}`;
 
   return (
     <Detailed distances={[0, body.radiusKm * 5, body.radiusKm * 18]}>
@@ -87,12 +90,13 @@ export function MarsLODMesh({ body }: { body: BodyConfig }) {
         <mesh key={segments}>
           <sphereGeometry args={[body.radiusKm, segments, segments]} />
           <meshStandardMaterial
+            key={materialKey}
             color={textures ? '#ffffff' : body.color}
             map={activeMap}
             normalMap={textures?.normal ?? null}
             normalScale={normalScale}
             roughnessMap={textures?.roughness ?? null}
-            roughness={0.88}
+            roughness={body.id === 'moon' ? 0.92 : 0.88}
             metalness={0.04}
             emissive={isFalseColor ? '#ffffff' : '#000000'}
             emissiveMap={isFalseColor ? activeMap : null}

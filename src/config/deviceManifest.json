@@ -348,15 +348,15 @@
     "bodyId": "mars",
     "name": "Mars Reconnaissance Orbiter (MRO)",
     "kind": "Orbiter",
-    "summary": "Mô hình tham khảo hình dáng; không mô phỏng vận hành hay xác nhận tỉ lệ vật lý.",
-    "evidence": "public/assets/models/spacecraft/mars_reconnaissance_orbiter.glb",
+    "summary": "Official NASA 3D Resources reference GLB for MRO; shape reference only — no operational telemetry or physical scale simulation.",
+    "evidence": "Official NASA 3D Resources (24884_MRO.glb)",
     "source": {
       "title": "Mars Reconnaissance Orbiter (MRO)",
-      "url": "https://mars.nasa.gov/mro/",
+      "url": "https://science.nasa.gov/resource/mars-reconnaissance-orbiter-3d-model/",
       "checked": "2026-11-14",
-      "version": "Repository Draco GLB asset"
+      "version": "24884_MRO.glb"
     },
-    "credit": "NASA/JPL-Caltech (workspace spacecraft GLB)",
+    "credit": "NASA/JPL-Caltech (official NASA 3D Resources)",
     "license": {
       "label": "NASA media usage guidelines",
       "url": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
@@ -372,32 +372,32 @@
       "normalization": "fit-longest-side-2",
       "physicalScaleVerified": false
     },
-    "version": "1.0.0",
+    "version": "1.1.0",
     "status": "available",
     "modelPath": "/assets/models/mars/mro_orbiter.glb",
-    "bytes": 5924,
-    "sha256": "3e63cadc4abeb10b2a6e2e1717c55c3b932b026cc58c17e0ae87c18e97518bb6"
+    "bytes": 4408164,
+    "sha256": "a9ec9e883bb1abbb202a671dbf882a529dc78a74bf9cac517e7a71c82fb28225"
   },
   {
     "id": "curiosity_rover",
     "bodyId": "mars",
     "name": "Curiosity",
     "kind": "Rover",
-    "summary": "Có trong tài liệu; chưa có GLB NASA gốc xác minh. Hỗ trợ mô hình 3D tái dựng minh họa & góc nhìn buồng điều khiển.",
-    "evidence": "Thitb-Tiliunndng-Nidungclichothitkgcnhn (1).csv",
+    "summary": "Official NASA/JPL-Caltech Curiosity (MSL) 3D model; single static glTF mesh at nominal surface configuration (Gale Crater, Aeolis Palus).",
+    "evidence": "Official NASA 3D Resources (24584_Curiosity_static.glb); landing site and mission metadata cross-checked against Thitb-Tiliunndng-Nidungclichothitkgcnhn (1).csv",
     "source": {
-      "title": "Thitb-Tiliunndng-Nidungclichothitkgcnhn (1).csv",
-      "url": "/assets/provenance/mars-rovers.csv",
+      "title": "NASA 3D Resources — Curiosity Rover 3D Model (MSL)",
+      "url": "https://science.nasa.gov/resource/curiosity-rover-3d-model/",
       "checked": "2026-11-14",
-      "version": "User-supplied notes; undated"
+      "version": "24584_Curiosity_static.glb"
     },
-    "credit": "NASA references named in supplied device notes",
+    "credit": "NASA/JPL-Caltech (official NASA 3D Resources)",
     "license": {
-      "label": "No model supplied",
-      "url": "",
+      "label": "NASA media usage guidelines",
+      "url": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
       "checked": "2026-11-14"
     },
-    "units": "glTF meters convention; physical dimensions unverified",
+    "units": "glTF meters convention; physical dimensions unverified against engineering CAD drawings",
     "transform": {
       "rotation": [
         0,
@@ -408,8 +408,10 @@
       "physicalScaleVerified": false
     },
     "version": "1.0.0",
-    "status": "unavailable",
-    "proceduralModel": "mars_rover_rtg",
+    "status": "available",
+    "modelPath": "/assets/models/mars/curiosity_rover.glb",
+    "bytes": 11860016,
+    "sha256": "86a8ee6d39fb1711ae549ba99951d2f52b44a7b8367ce4814cc81aec60e94b31",
     "coordinates": {
       "lat": -4.5895,
       "lon": 137.4417
@@ -420,21 +422,21 @@
     "bodyId": "mars",
     "name": "Perseverance",
     "kind": "Rover",
-    "summary": "Có trong tài liệu; chưa có GLB NASA gốc xác minh. Hỗ trợ mô hình 3D tái dựng minh họa & góc nhìn buồng điều khiển.",
-    "evidence": "Thitb-Tiliunndng-Nidungclichothitkgcnhn (1).csv",
+    "summary": "Official NASA/JPL-Caltech Perseverance (Mars 2020) 3D model with 66 named hardware nodes across mobility, Mastcam-Z/SuperCam mast, robotic arm/PIXL turret, and MMRTG/RIMFAX subsystems.",
+    "evidence": "Official NASA 3D Resources (25042_Perseverance.glb); landing site and mission metadata cross-checked against Thitb-Tiliunndng-Nidungclichothitkgcnhn (1).csv",
     "source": {
-      "title": "Thitb-Tiliunndng-Nidungclichothitkgcnhn (1).csv",
-      "url": "/assets/provenance/mars-rovers.csv",
+      "title": "NASA 3D Resources — Mars Perseverance Rover 3D Model",
+      "url": "https://science.nasa.gov/resource/mars-perseverance-rover-3d-model/",
       "checked": "2026-11-14",
-      "version": "User-supplied notes; undated"
+      "version": "25042_Perseverance.glb"
     },
-    "credit": "NASA references named in supplied device notes",
+    "credit": "NASA/JPL-Caltech (official NASA 3D Resources)",
     "license": {
-      "label": "No model supplied",
-      "url": "",
+      "label": "NASA media usage guidelines",
+      "url": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
       "checked": "2026-11-14"
     },
-    "units": "glTF meters convention; physical dimensions unverified",
+    "units": "glTF meters convention; physical dimensions unverified against engineering CAD drawings",
     "transform": {
       "rotation": [
         0,
@@ -445,8 +447,10 @@
       "physicalScaleVerified": false
     },
     "version": "1.0.0",
-    "status": "unavailable",
-    "proceduralModel": "mars_rover_rtg",
+    "status": "available",
+    "modelPath": "/assets/models/mars/perseverance_rover.glb",
+    "bytes": 11687880,
+    "sha256": "484f00aa5d3739b127b6d413e77149a2d74ae87b76ae57463c4b91965ffb4990",
     "coordinates": {
       "lat": 18.38,
       "lon": 77.58

@@ -9,6 +9,17 @@ export default defineConfig({
     CESIUM_BASE_URL: JSON.stringify('/cesium/'),
   },
   assetsInclude: ['**/*.glsl', '**/*.wasm'],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          three: ['three'],
+          postprocessing: ['postprocessing', '@react-three/postprocessing'],
+          gsap: ['gsap'],
+        },
+      },
+    },
+  },
   server: {
     headers: {
       'Cross-Origin-Opener-Policy': 'same-origin',

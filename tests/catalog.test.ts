@@ -12,17 +12,29 @@ import { Vector3 } from 'three';
 test('catalog IDs, sources, units, transforms and availability are valid', () => {
   validateCatalog(Object.values(BODY_CATALOG), ATLAS_POIS, DEVICE_CATALOG);
   const available = DEVICE_CATALOG.filter((device) => device.status === 'available');
-  assert.equal(available.length, 10);
-  for (const id of ['pioneer_10', 'kepler_space_telescope', 'dawn_spacecraft', 'near_shoemaker', 'mro_orbiter']) {
-    assert.equal(DEVICE_CATALOG.find((device) => device.id === id)?.status, 'available');
-  }
-  for (const id of ['curiosity_rover', 'perseverance_rover']) {
+  assert.equal(available.length, 12);
+  for (const id of [
+    'pioneer_10',
+    'kepler_space_telescope',
+    'dawn_spacecraft',
+    'near_shoemaker',
+    'mro_orbiter',
+    'curiosity_rover',
+    'perseverance_rover',
+  ]) {
     const dev = DEVICE_CATALOG.find((device) => device.id === id);
-    assert.equal(dev?.modelPath, undefined);
-    assert.equal(dev?.proceduralModel, 'mars_rover_rtg');
+    assert.equal(dev?.status, 'available');
+    assert.ok(dev?.modelPath?.endsWith('.glb'));
+    assert.equal(dev?.proceduralModel, undefined);
   }
+  const apolloLrv = DEVICE_CATALOG.find((device) => device.id === 'apollo_lrv');
+  assert.equal(apolloLrv?.status, 'unavailable');
+  assert.equal(apolloLrv?.modelPath, undefined);
+  assert.equal(apolloLrv?.proceduralModel, 'apollo_lrv');
+
+  const inlineAttributedIds = new Set(['mro_orbiter', 'curiosity_rover', 'perseverance_rover']);
   for (const device of available) {
-    if (device.id === 'mro_orbiter') {
+    if (inlineAttributedIds.has(device.id)) {
       assert.equal(device.attributionPath, undefined);
     } else {
       assert.equal(device.attributionPath, '/assets/attribution/Mars-Attributions.txt');
@@ -33,7 +45,7 @@ test('catalog IDs, sources, units, transforms and availability are valid', () =>
   }
 });
 
-test('orbital actors catalog covers Mars moons/orbiters and Moon orbiters with valid Kepler elements', () => {
+test('orbital actors catalog covers Mars moons/orbiters and Moon orbiters with valid Kepler elements and GLB paths', () => {
   const marsOrbiters = ORBITAL_ACTORS_CATALOG.filter((actor) => actor.bodyId === 'mars');
   const moonOrbiters = ORBITAL_ACTORS_CATALOG.filter((actor) => actor.bodyId === 'moon');
   assert.deepEqual(
@@ -43,10 +55,30 @@ test('orbital actors catalog covers Mars moons/orbiters and Moon orbiters with v
   assert.deepEqual(moonOrbiters.map((actor) => actor.id), ['lro_orbiter', 'apollo_csm']);
   for (const actor of ORBITAL_ACTORS_CATALOG) {
     assert.ok(actor.orbitalElements);
+    assert.ok(actor.modelPath?.endsWith('.glb'), `Expected orbital actor ${actor.id} to reference a GLB model`);
     const pos = computeOrbitalPosition(actor.orbitalElements, 3600);
     assert.ok(Number.isFinite(pos.x) && Number.isFinite(pos.y) && Number.isFinite(pos.z));
     assert.ok(pos.length() > BODY_CATALOG[actor.bodyId!].radiusKm * 1.05);
   }
+});
+
+test('orbitalCloseup store flag resets across POV switch, target switch, body switch, and returnToOrbit', () => {
+  const store = useCosmosStore;
+  const odyssey = ORBITAL_ACTORS_CATALOG.find((actor) => actor.id === 'mars_odyssey')!;
+  store.getState().selectBody('mars');
+  store.getState().selectTarget(odyssey);
+  assert.equal(store.getState().orbitalCloseup, false);
+
+  store.getState().setOrbitalCloseup(true);
+  store.getState().setInspectionMode('MODEL_CLOSEUP');
+  assert.equal(store.getState().orbitalCloseup, true);
+
+  store.getState().setInspectionMode('CONTROL_ROOM_POV');
+  assert.equal(store.getState().orbitalCloseup, false);
+
+  store.getState().setOrbitalCloseup(true);
+  store.getState().returnToOrbit();
+  assert.equal(store.getState().orbitalCloseup, false);
 });
 
 test('Moon body, POIs and Apollo records are source-backed and unloadable', () => {
@@ -144,10 +176,18 @@ test('selection, unavailable assets, stale load reports and unavailable layers',
   store.getState().selectBody('mars');
   store.getState().selectDevice('viking_lander');
   assert.equal(store.getState().assetLoad.status, 'loading');
-  store.getState().selectDevice('curiosity_rover');
+  store.getState().selectDevice('perseverance_rover');
+  assert.equal(store.getState().viewStage, 'SUB_SCENE');
+  store.getState().setAssetLoad('viking_lander', { status: 'ready' });
+  assert.equal(store.getState().assetLoad.status, 'loading');
+
+  store.getState().selectBody('moon');
+  store.getState().selectDevice('apollo_lrv');
   assert.equal(store.getState().viewStage, 'ORBITAL_OVERVIEW');
   store.getState().setAssetLoad('viking_lander', { status: 'ready' });
   assert.equal(store.getState().assetLoad.status, 'unavailable');
+
+  store.getState().selectBody('mars');
   store.getState().setSpectralMode('MOLA_ELEVATION');
   assert.equal(store.getState().spectralMode, 'MOLA_ELEVATION');
   store.getState().setSpectralMode('TERRAIN_MESH_3D');

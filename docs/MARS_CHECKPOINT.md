@@ -42,10 +42,10 @@ The pre-existing Mars implementation and its uncommitted/untracked files were pr
 | Command | Result |
 | --- | --- |
 | `npm run typecheck` | passed |
-| `npm test` | 15 passed, 0 failed (`catalog`, `deviceControl`, `resources`) |
-| `npm run build` | passed; Vite emitted the existing >500 kB chunk-size warning |
-| `npm run validate:assets` | all 5 Mars GLBs structurally valid; byte counts and SHA-256 match; 0 external URIs |
-| `npm run test:browser` | 12 passed (7 Mars/Ingenuity + 5 Moon) at 1440×1000 and 390×844 |
+| `npm test` | 20 passed, 0 failed (`catalog`, `deviceControl`, `resources`) |
+| `npm run build` | passed with `manualChunks` (`three`, `postprocessing`, `gsap`) |
+| `npm run validate:assets` | all 10 loadable GLBs (including 5 Mars surface GLBs) structurally valid; byte counts and SHA-256 match; 0 external URIs |
+| `npm run test:browser` | 14 passed (8 Mars/Ingenuity + 6 Moon) at 1440×1000 and 390×844 |
 
 The browser suite was run with Playwright/Chrome using the repository's configured SwiftShader launch flags at 1440×1000 and 390×844.
 
@@ -72,3 +72,12 @@ The browser suite was run with Playwright/Chrome using the repository's configur
   - Non-articulating subsystems (`solar_panel`, `bus`, `cams`, `leg_01`–`leg_04`) support non-destructive node isolation via per-mesh cloned materials (restored cleanly on `'all'` or disposal) without fabricating leg-folding animations, blade pitch links, or live mission telemetry.
 - **Control gating & cleanup**: Controls only render once `assetLoad.status === 'ready'`, remain hidden on loading/error/`unavailable` records (e.g., 404/retry flow or other Mars models without specs), and reset cleanly on body switch, device switch, or `Reset`.
 - **Files added/updated for Ingenuity MVP**: `src/types/cosmos.types.ts`, `src/config/deviceControlSpecs.ts`, `src/config/validateCatalog.ts`, `src/App.tsx`, `src/store/useCosmosStore.ts`, `src/scene/spacecraft/deviceControlRuntime.ts`, `src/scene/spacecraft/DeviceModel.tsx`, `src/core/camera/SplineCameraRig.tsx`, `src/ui/hud/DeviceControlPanel.tsx`, `src/ui/hud/SubSceneInfoPanel.tsx`, `src/ui/styles/hud.css`, `tests/deviceControl.test.ts`, `tests/browser/mars.spec.ts`, `tests/browser/moon.spec.ts`, `docs/SOURCES.md`, `docs/MARS_CHECKPOINT.md`, `docs/MOON_CHECKPOINT.md`, `docs/IMPLEMENTATION_PROCESS.md`.
+
+## Terrain 3D Mesh, Orbital Systems, Dual-View Modes & Mission Dossiers (2026-11-14)
+
+- **3D Mars terrain & 8K baked WebP suite**: Added `TERRAIN_MESH_3D` mode backed by `public/assets/models/mars/mars_terrain.glb` (456,528 B) and `public/assets/textures/mars_{albedo_baked,normals,roughness}.webp` on both the Mars globe (`MarsLODMesh.tsx`) and terrain patch (`MarsTerrainPatch.tsx`), lazy-loaded on demand (`0` `.glb` requests on initial globe load).
+- **Orbital environment, React 19 stability & WebGL geometry disposal**: Added planetary reference orbit arc (`PlanetaryOrbitContext.tsx`), moons (`PhobosOrbit.tsx`, `DeimosOrbit.tsx`), and orbital spacecraft (`OrbitalFleet.tsx`) using deterministic `NativeOrbitLine.tsx` buffer disposal and zero in-canvas `<Html>` portals.
+- **Immediate 3D procedural rovers (`Curiosity` & `Perseverance`)**: Selecting `curiosity_rover` or `perseverance_rover` preserves `viewStage: 'ORBITAL_OVERVIEW'` and `assetLoad.status: 'unavailable'` while immediately framing articulated procedural 3D hardware (`src/scene/spacecraft/ProceduralDeviceModel.tsx`) with rover-specific Mastcam-Z / SuperCam / ChemCam / sample-caching structures and subsystem highlights.
+- **Option 1 (3D Close-Up) & Option 2 (Interactive Control Room POV)**: Added right-dock `dual-view-mode-switcher` and interactive onboard actuation (`pov-action-arm` robotic arm deployment & `pov-action-scan` laser spectrometer target scan) in `src/scene/spacecraft/ControlRoomFirstPersonScene.tsx` and `src/ui/hud/ControlRoomHudOverlay.tsx`, while keeping the center viewport free of floating overlay bars.
+- **Rich mission dossiers (`src/config/deviceDossiers.ts` & `src/ui/hud/DeviceDossierPanel.tsx`)**: Added documented NASA biographies, technical specifications, measured mission data, and scientific/engineering contributions across all 18 `DEVICE_CATALOG` records and all 8 non-device `ORBITAL_ACTORS_CATALOG` targets.
+- **Rendering & bundle optimization**: Enabled `<Bvh firstHitOnly>`, `<AdaptiveDpr pixelated />`, and `<AdaptiveEvents />` in `src/core/canvas/MarsCanvas.tsx`; replaced `<SelectiveBloom>` with mipmap `<Bloom>` in `src/core/postprocessing/PostProcessingRig.tsx`; enabled 8× anisotropic trilinear mipmap filtering in `useProgressiveAsset.ts` and `DeviceModel.tsx`; and split `three`, `postprocessing`, and `gsap` chunks in `vite.config.ts`.

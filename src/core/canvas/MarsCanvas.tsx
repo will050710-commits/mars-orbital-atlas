@@ -1,7 +1,7 @@
 import React, { Suspense, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
+import { AdaptiveDpr, AdaptiveEvents } from '@react-three/drei';
 import * as THREE from 'three';
-import { Selection } from '@react-three/postprocessing';
 import { CosmosSceneRoot } from '../../scene/CosmosSceneRoot';
 import { PostProcessingRig } from '../postprocessing/PostProcessingRig';
 import { SplineCameraRig } from '../camera/SplineCameraRig';
@@ -33,14 +33,14 @@ export const MarsCanvas: React.FC = () => {
         dpr={[1, 2]}
       >
         <color attach="background" args={['#020205']} />
+        <AdaptiveDpr pixelated />
+        <AdaptiveEvents />
         <Suspense fallback={null}>
-          <Selection>
-            <FloatingOriginManager>
-              <CosmosSceneRoot sunLightRef={directionalLightRef} />
-            </FloatingOriginManager>
-            <SplineCameraRig />
-            <PostProcessingRig sunLightRef={directionalLightRef} />
-          </Selection>
+          <FloatingOriginManager>
+            <CosmosSceneRoot sunLightRef={directionalLightRef} />
+          </FloatingOriginManager>
+          <SplineCameraRig />
+          <PostProcessingRig />
         </Suspense>
       </Canvas>
     </div>
