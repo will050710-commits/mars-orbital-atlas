@@ -1,274 +1,257 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
-import * as THREE from 'three';
+import { MathUtils, PerspectiveCamera, Vector3 } from 'three';
 import gsap from 'gsap';
-import { useCosmosStore, type CelestialTarget, type ViewStage } from '../../store/useCosmosStore';
+import { useCosmosStore } from '../../store/useCosmosStore';
+import { BODY_CATALOG } from '../../config/bodyCatalog';
+import { DEVICE_CATALOG } from '../../config/deviceCatalog';
+import { getDeviceControlSpec } from '../../config/deviceControlSpecs';
 import { buildSafeWarpSpline } from './warpPaths';
-import { spatialAudio } from '../audio/SpatialAudioEngine';
-import { OPENING_CAMERA_POS, OPENING_LOOK_TARGET } from '../../scene/opening/OpeningShipScene';
 
-const DEFAULT_OVERVIEW_POS = new THREE.Vector3(0, 8000, 22000);
-const DEFAULT_OVERVIEW_ORIGIN = new THREE.Vector3(0, 0, 0);
+const INSPECTION_MIN_DISTANCE = 0.35;
+const INSPECTION_MAX_DISTANCE = 24;
 
-export const SplineCameraRig: React.FC = () => {
+function isOrbitalDevice(deviceId: string | null): boolean {
+  return (
+    deviceId === 'mro_orbiter' ||
+    deviceId === 'dawn_spacecraft' ||
+    deviceId === 'near_shoemaker' ||
+    deviceId === 'pioneer_10' ||
+    deviceId === 'kepler_space_telescope'
+  );
+}
+
+export function SplineCameraRig() {
   const { camera } = useThree();
-  const controlsRef = useRef<OrbitControlsImpl>(null!);
-  const lookAtProxy = useRef(new THREE.Vector3(0, 0, 0));
-  const timelineRef = useRef<gsap.core.Timeline | null>(null);
+  const controls = useRef<OrbitControlsImpl>(null);
+  const prevDeviceIdRef = useRef<string | null>(null);
+
+  const bodyId = useCosmosStore((state) => state.activeBodyId);
+  const deviceId = useCosmosStore((state) => state.activeDeviceId);
+  const deviceCameraViewId = useCosmosStore((state) => state.deviceCameraViewId);
+  const deviceCameraTick = useCosmosStore((state) => state.deviceCameraTick);
+  const inspectionMode = useCosmosStore((state) => state.inspectionMode);
+  const povYawDeg = useCosmosStore((state) => state.povYawDeg);
+  const povPitchDeg = useCosmosStore((state) => state.povPitchDeg);
+  const povFovZoom = useCosmosStore((state) => state.povFovZoom);
+  const viewStage = useCosmosStore((state) => state.viewStage);
+  const spectralMode = useCosmosStore((state) => state.spectralMode);
+  const target = useCosmosStore((state) => state.activeTarget);
+  const reset = useCosmosStore((state) => state.cameraResetTick);
+
+  const device = DEVICE_CATALOG.find((item) => item.id === deviceId);
+  const hasPovSelection = Boolean(device) || Boolean(target);
+  const isControlRoomPov = inspectionMode === 'CONTROL_ROOM_POV' && hasPovSelection;
+
+  const isAvailableDevice = device?.status === 'available';
+  const isProceduralDevice = device?.status === 'unavailable' && viewStage === 'SUB_SCENE';
+  const isTerrainShowcase =
+    spectralMode === 'TERRAIN_MESH_3D' &&
+    !device &&
+    (!target || target.category === 'SURFACE_POI');
+
+  const isNormalizedCloseup =
+    !isControlRoomPov && (isAvailableDevice || isProceduralDevice || isTerrainShowcase);
+
+  const radius = BODY_CATALOG[bodyId].radiusKm;
+
+  // Apply real-time pan/tilt/zoom inside CONTROL_ROOM_POV without triggering warp animations
+  useEffect(() => {
+    if (!isControlRoomPov) return;
+    const orbit = controls.current;
+    if (orbit) orbit.enabled = false;
+
+    const perspective = camera as PerspectiveCamera;
+    perspective.near = 0.05;
+    perspective.far = 160;
+    perspective.fov = 52 / povFovZoom;
+    perspective.updateProjectionMatrix();
+
+    const isOrbitalCupola =
+      isOrbitalDevice(device?.id ?? null) ||
+      target?.category === 'MOON' ||
+      target?.category === 'SPACECRAFT';
+    const eyeY = isOrbitalCupola
+      ? 0
+      : device?.id === 'ingenuity_helicopter'
+        ? 0.56
+        : 1.12;
+
+    camera.position.set(0, eyeY, 0);
+    camera.rotation.order = 'YXZ';
+    camera.rotation.set(
+      MathUtils.degToRad(povPitchDeg),
+      MathUtils.degToRad(-povYawDeg),
+      0,
+    );
+  }, [
+    camera,
+    device?.id,
+    isControlRoomPov,
+    povFovZoom,
+    povPitchDeg,
+    povYawDeg,
+    target?.category,
+  ]);
 
   useEffect(() => {
-    const perspCamera = camera as THREE.PerspectiveCamera;
-    const initialStage = useCosmosStore.getState().viewStage;
+    if (isControlRoomPov) return;
+    const orbit = controls.current;
+    if (!orbit) return;
 
-    // Đặt camera đúng vị trí Opening khi ứng dụng khởi chạy ở PRELOADING
-    if (initialStage === 'PRELOADING' && controlsRef.current) {
-      perspCamera.position.copy(OPENING_CAMERA_POS);
-      controlsRef.current.target.copy(OPENING_LOOK_TARGET);
-      controlsRef.current.enabled = false;
-      perspCamera.lookAt(OPENING_LOOK_TARGET);
+    camera.rotation.order = 'XYZ';
+    const perspective = camera as PerspectiveCamera;
+    perspective.near = isNormalizedCloseup ? 0.01 : 1;
+    perspective.far = isNormalizedCloseup ? 180 : 1000000;
+    perspective.fov = 45;
+    perspective.updateProjectionMatrix();
+
+    const overview = new Vector3(0, radius * 0.65, radius * 3.6);
+    orbit.enabled = true;
+
+    if (isTerrainShowcase) {
+      orbit.minDistance = 2.0;
+      orbit.maxDistance = INSPECTION_MAX_DISTANCE;
+      useCosmosStore.getState().setViewStage('SUB_SCENE');
+      camera.position.set(0, 6.2, 10.5);
+      orbit.target.set(0, 0.35, 0);
+      orbit.update();
+      return;
     }
 
-    const prefersReducedMotion =
-      typeof window !== 'undefined' &&
-      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if ((isAvailableDevice || isProceduralDevice) && deviceId) {
+      orbit.minDistance = INSPECTION_MIN_DISTANCE;
+      orbit.maxDistance = INSPECTION_MAX_DISTANCE;
+      useCosmosStore.getState().setViewStage('SUB_SCENE');
 
-    const flyBackToOverview = () => {
-      if (!controlsRef.current) return;
-      timelineRef.current?.kill();
-      controlsRef.current.enabled = false;
+      const spec = getDeviceControlSpec(deviceId);
+      const activeView = spec
+        ? (spec.cameraViews.find((view) => view.id === deviceCameraViewId) ?? spec.cameraViews[0])
+        : null;
+      const desiredPos = activeView ? new Vector3(...activeView.position) : new Vector3(2.8, 1.55, 2.8);
+      const desiredTarget = activeView ? new Vector3(...activeView.target) : new Vector3(0, 0, 0);
 
-      const startPos = perspCamera.position.clone();
-      const startLook = controlsRef.current.target.clone();
-      const dist = startPos.distanceTo(DEFAULT_OVERVIEW_POS);
+      const sameDevice = prevDeviceIdRef.current === deviceId;
+      prevDeviceIdRef.current = deviceId;
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-      // Nếu camera đã ở ngay vị trí toàn cảnh thì mở khóa ngay lập tức
-      if (dist < 80 && startLook.distanceTo(DEFAULT_OVERVIEW_ORIGIN) < 80) {
-        controlsRef.current.target.copy(DEFAULT_OVERVIEW_ORIGIN);
-        controlsRef.current.update();
-        controlsRef.current.enabled = true;
-        useCosmosStore.getState().setViewStage('ORBITAL_OVERVIEW');
+      if (!sameDevice || reduced || !spec) {
+        camera.position.copy(desiredPos);
+        orbit.target.copy(desiredTarget);
+        orbit.update();
         return;
       }
 
-      const proxy = { t: 0 };
-      const duration = prefersReducedMotion ? 1.2 : 2.2;
-      spatialAudio.playWarpTransition(duration);
-
-      timelineRef.current = gsap.timeline({
-        onComplete: () => {
-          if (!controlsRef.current) return;
-          controlsRef.current.target.copy(DEFAULT_OVERVIEW_ORIGIN);
-          controlsRef.current.update();
-          controlsRef.current.enabled = true;
-          useCosmosStore.getState().setViewStage('ORBITAL_OVERVIEW');
-        },
-      });
-
-      timelineRef.current.to(proxy, {
+      const startPos = camera.position.clone();
+      const startTarget = orbit.target.clone();
+      const progress = { t: 0 };
+      orbit.enabled = false;
+      const tween = gsap.to(progress, {
         t: 1,
-        duration,
-        ease: 'power3.inOut',
+        duration: 0.45,
+        ease: 'power2.out',
         onUpdate: () => {
-          perspCamera.position.lerpVectors(startPos, DEFAULT_OVERVIEW_POS, proxy.t);
-          lookAtProxy.current.lerpVectors(startLook, DEFAULT_OVERVIEW_ORIGIN, proxy.t);
-          // Đồng bộ controls.target mỗi khung hình để OrbitControls.update() không ghi đè góc nhìn
-          controlsRef.current.target.copy(lookAtProxy.current);
-          perspCamera.lookAt(lookAtProxy.current);
+          camera.position.lerpVectors(startPos, desiredPos, progress.t);
+          orbit.target.lerpVectors(startTarget, desiredTarget, progress.t);
+          camera.lookAt(orbit.target);
+        },
+        onComplete: () => {
+          camera.position.copy(desiredPos);
+          orbit.target.copy(desiredTarget);
+          orbit.enabled = true;
+          orbit.update();
         },
       });
-    };
+      return () => {
+        tween.kill();
+        orbit.enabled = true;
+      };
+    }
 
-    // 1. Lắng nghe sự kiện LAUNCHING để thực hiện cú nhảy Alpha từ tàu tiền cảnh vào quỹ đạo Sao Hỏa
-    const unsubStage = useCosmosStore.subscribe(
-      (state) => state.viewStage,
-      (stage: ViewStage, prevStage: ViewStage) => {
-        if (stage !== 'LAUNCHING' || prevStage === 'LAUNCHING' || !controlsRef.current) return;
+    prevDeviceIdRef.current = null;
+    orbit.minDistance = radius * 0.08;
+    orbit.maxDistance = radius * 25;
 
-        timelineRef.current?.kill();
-        controlsRef.current.enabled = false;
+    if (!target) {
+      camera.position.copy(overview);
+      orbit.target.set(0, 0, 0);
+      orbit.update();
+      useCosmosStore.getState().setViewStage('ORBITAL_OVERVIEW');
+      return;
+    }
 
-        const durationTotal = prefersReducedMotion ? 1.8 : 3.4;
-        spatialAudio.playWarpTransition(durationTotal);
+    // Returning from normalized unit modes or POV resets back to orbital scale before warping.
+    if (camera.position.length() < radius) {
+      camera.position.copy(overview);
+    }
 
-        const jumpCurve = new THREE.CatmullRomCurve3(
-          [
-            OPENING_CAMERA_POS.clone(),
-            new THREE.Vector3(0, 8150, 56000),
-            DEFAULT_OVERVIEW_POS.clone(),
-          ],
-          false,
-          'centripetal',
-          0.5,
-        );
-
-        const progressProxy = { t: 0 };
-        const peakFov = prefersReducedMotion ? 52 : 76;
-
-        timelineRef.current = gsap
-          .timeline({
-            onComplete: () => {
-              if (!controlsRef.current) return;
-              perspCamera.position.copy(DEFAULT_OVERVIEW_POS);
-              controlsRef.current.target.copy(DEFAULT_OVERVIEW_ORIGIN);
-              controlsRef.current.update();
-              controlsRef.current.enabled = true;
-              useCosmosStore.getState().completeLaunchSequence();
-            },
-          })
-          .to(
-            progressProxy,
-            {
-              t: 1,
-              duration: durationTotal,
-              ease: 'power3.inOut',
-              onUpdate: () => {
-                const pt = jumpCurve.getPointAt(progressProxy.t);
-                perspCamera.position.copy(pt);
-                controlsRef.current.target.copy(DEFAULT_OVERVIEW_ORIGIN);
-                perspCamera.lookAt(DEFAULT_OVERVIEW_ORIGIN);
-              },
-            },
-            0,
-          )
-          .to(
-            perspCamera,
-            {
-              fov: peakFov,
-              duration: durationTotal * 0.36,
-              ease: 'power2.in',
-              onUpdate: () => perspCamera.updateProjectionMatrix(),
-            },
-            0,
-          )
-          .to(
-            perspCamera,
-            {
-              fov: 45,
-              duration: durationTotal * 0.64,
-              ease: 'power3.out',
-              onUpdate: () => perspCamera.updateProjectionMatrix(),
-            },
-            durationTotal * 0.36,
-          );
+    const { curve } = buildSafeWarpSpline(camera.position, target, radius);
+    const startLook = orbit.target.clone();
+    const progress = { t: 0 };
+    orbit.enabled = false;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const tween = gsap.to(progress, {
+      t: 1,
+      duration: reduced ? 0 : 1.5,
+      ease: 'power2.inOut',
+      onUpdate: () => {
+        camera.position.copy(curve.getPointAt(progress.t));
+        orbit.target.lerpVectors(startLook, target.position, progress.t);
+        camera.lookAt(orbit.target);
       },
-    );
-
-    // 2. Lắng nghe nút "Toàn Cảnh Hệ Quỹ Đạo" (kể cả khi activeTarget đã là null nhưng camera bị xoay đi chỗ khác)
-    const unsubReset = useCosmosStore.subscribe(
-      (state) => state.cameraResetTick,
-      () => {
-        const currentStage = useCosmosStore.getState().viewStage;
-        if (currentStage === 'PRELOADING' || currentStage === 'LAUNCHING') return;
-        flyBackToOverview();
+      onComplete: () => {
+        orbit.enabled = true;
+        orbit.update();
+        useCosmosStore.getState().setViewStage('SUB_SCENE');
       },
-    );
-
-    // 3. Lắng nghe sự kiện chọn thiên thể từ Zustand mà không làm component này re-render liên tục
-    const unsubTarget = useCosmosStore.subscribe(
-      (state) => state.activeTarget,
-      (target: CelestialTarget | null) => {
-        const currentStage = useCosmosStore.getState().viewStage;
-        if (currentStage === 'PRELOADING' || currentStage === 'LAUNCHING') return;
-        if (!controlsRef.current) return;
-
-        if (!target) {
-          flyBackToOverview();
-          return;
-        }
-
-        timelineRef.current?.kill();
-
-        // Khóa tạm thời thao tác chuột của người dùng và kích hoạt âm thanh Warp
-        controlsRef.current.enabled = false;
-        const duration = prefersReducedMotion ? 1.8 : 3.1;
-        spatialAudio.playWarpTransition(duration);
-
-        const startPos = perspCamera.position.clone();
-        const startLookAt = controlsRef.current.target.clone();
-        const { curve: splineCurve } = buildSafeWarpSpline(startPos, target);
-
-        const progressProxy = { t: 0 };
-
-        // Dùng GSAP nội suy vị trí theo đường cong Spline kèm hiệu ứng kéo giãn FOV (Warp Effect)
-        timelineRef.current = gsap
-          .timeline({
-            onComplete: () => {
-              if (!controlsRef.current) return;
-              controlsRef.current.target.copy(target.position);
-              controlsRef.current.update();
-              controlsRef.current.enabled = true;
-              useCosmosStore.getState().setViewStage('SUB_SCENE');
-            },
-          })
-          .to(
-            progressProxy,
-            {
-              t: 1,
-              duration,
-              ease: 'power3.inOut',
-              onUpdate: () => {
-                const currentPoint = splineCurve.getPointAt(progressProxy.t);
-                perspCamera.position.copy(currentPoint);
-
-                // Nội suy mượt điểm nhìn từ vị trí cũ sang tâm thiên thể mới và đồng bộ vào OrbitControls.target
-                lookAtProxy.current.lerpVectors(startLookAt, target.position, progressProxy.t);
-                controlsRef.current.target.copy(lookAtProxy.current);
-                perspCamera.lookAt(lookAtProxy.current);
-              },
-            },
-            0,
-          )
-          // Hiệu ứng bẻ cong trường nhìn (FOV) lúc tăng tốc xuyên qua mây/khí quyển
-          .to(
-            perspCamera,
-            {
-              fov: prefersReducedMotion ? 50 : 66,
-              duration: duration * 0.36,
-              ease: 'power2.in',
-              onUpdate: () => perspCamera.updateProjectionMatrix(),
-            },
-            0,
-          )
-          .to(
-            perspCamera,
-            {
-              fov: 45,
-              duration: duration * 0.64,
-              ease: 'power3.out',
-              onUpdate: () => perspCamera.updateProjectionMatrix(),
-            },
-            duration * 0.36,
-          );
-      },
-    );
-
+    });
     return () => {
-      unsubStage();
-      unsubReset();
-      unsubTarget();
-      timelineRef.current?.kill();
+      tween.kill();
+      orbit.enabled = true;
     };
-  }, [camera]);
+  }, [
+    camera,
+    bodyId,
+    deviceId,
+    deviceCameraViewId,
+    deviceCameraTick,
+    isAvailableDevice,
+    isControlRoomPov,
+    isNormalizedCloseup,
+    isProceduralDevice,
+    isTerrainShowcase,
+    target,
+    reset,
+    radius,
+  ]);
 
   useFrame((_, delta) => {
     const state = useCosmosStore.getState();
-    // Tạm dừng xoay quỹ đạo khi đang bay Warp hoặc đang ngắm cận cảnh một điểm để tránh trôi mục tiêu
-    if (state.viewStage === 'ORBITAL_OVERVIEW') {
+    if (
+      state.viewStage === 'ORBITAL_OVERVIEW' &&
+      !isNormalizedCloseup &&
+      !isControlRoomPov
+    ) {
       state.advanceSimulationTime(Math.min(delta, 0.1));
+    }
+    if (!isNormalizedCloseup && !isControlRoomPov && camera.position.length() < radius * 1.02) {
+      camera.position.normalize().multiplyScalar(radius * 1.02);
     }
   });
 
   return (
     <OrbitControls
-      ref={controlsRef}
+      ref={controls}
+      enabled={!isControlRoomPov}
       enableDamping
       dampingFactor={0.06}
+      enablePan={false}
       rotateSpeed={0.6}
       zoomSpeed={0.9}
-      minDistance={120}
-      maxDistance={500000}
+      minDistance={isNormalizedCloseup ? INSPECTION_MIN_DISTANCE : radius * 0.08}
+      maxDistance={isNormalizedCloseup ? INSPECTION_MAX_DISTANCE : radius * 25}
     />
   );
-};
+}

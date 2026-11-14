@@ -1,67 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { MARS_SIDEREAL_ROTATION_SECONDS } from '../../config/celestialCatalog';
 import { useCosmosStore } from '../../store/useCosmosStore';
-
-const TIME_PRESETS = [
-  { label: '0x (Dừng)', value: 0 },
-  { label: '1x (Thực)', value: 1 },
-  { label: '100x', value: 100 },
-  { label: '1.000x', value: 1000 },
-  { label: '10.000x', value: 10000 },
-];
-
-export const TimeScrubberBar: React.FC = () => {
-  const viewStage = useCosmosStore((state) => state.viewStage);
+export function TimeScrubberBar() {
   const timeScale = useCosmosStore((state) => state.timeScale);
   const setTimeScale = useCosmosStore((state) => state.setTimeScale);
-  const [marsSol, setMarsSol] = useState(1.0);
-
-  useEffect(() => {
-    const id = window.setInterval(() => {
-      const simSeconds = useCosmosStore.getState().simulationTime;
-      const nextSol = 1 + simSeconds / MARS_SIDEREAL_ROTATION_SECONDS;
-      setMarsSol((prev) => (Math.abs(nextSol - prev) >= 0.0005 ? nextSol : prev));
-    }, 150);
-    return () => window.clearInterval(id);
-  }, []);
-
-  if (viewStage === 'PRELOADING' || viewStage === 'LAUNCHING') return null;
-
-  return (
-    <footer className="hud-bottom-bar glass-panel">
-      <div className="sol-clock-block">
-        <span className="metric-label">ĐỒNG HỒ QUỸ ĐẠO (MARS SOL)</span>
-        <span className="sol-value">SOL {marsSol.toFixed(3)}</span>
-      </div>
-
-      <div className="time-preset-buttons" role="group" aria-label="Tốc độ thời gian quỹ đạo">
-        {TIME_PRESETS.map((preset) => (
-          <button
-            key={preset.value}
-            type="button"
-            onClick={() => setTimeScale(preset.value)}
-            className={`time-preset-btn ${timeScale === preset.value ? 'is-active' : ''}`}
-          >
-            {preset.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="time-slider-wrap">
-        <label htmlFor="time-scale-range" className="metric-label">
-          TỐC ĐỘ TUA: <strong>{timeScale.toLocaleString('vi-VN')}x</strong>
-        </label>
-        <input
-          id="time-scale-range"
-          type="range"
-          min={0}
-          max={10000}
-          step={10}
-          value={timeScale}
-          onChange={(e) => setTimeScale(Number(e.target.value))}
-          className="time-range-input"
-        />
-      </div>
-    </footer>
-  );
-};
+  return <footer className="hud-bottom-bar glass-panel">
+    <span>Chuyển động minh họa · không phải thời gian nhiệm vụ</span>
+    <div className="time-preset-buttons" role="group" aria-label="Tốc độ xoay globe">
+      {[0, 1, 100, 1000].map((speed) => <button key={speed}
+        className={'time-preset-btn ' + (speed === timeScale ? 'is-active' : '')}
+        aria-pressed={speed === timeScale} onClick={() => setTimeScale(speed)}>{speed === 0 ? 'Dừng' : speed + '×'}</button>)}
+    </div>
+  </footer>;
+}

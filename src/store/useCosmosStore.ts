@@ -1,16 +1,91 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import * as THREE from 'three';
+import { BODY_CATALOG } from '../config/bodyCatalog';
+import { DEVICE_CATALOG } from '../config/deviceCatalog';
 import type {
   CelestialTarget,
   CelestialTargetId,
   SpectralMode,
   ViewStage,
+  BodyId,
+  DeviceCameraViewId,
+  DevicePartGroupId,
+  RotorSpinMode,
+  RotorStepDeg,
+  InspectionViewMode,
+  SensorFilterMode,
 } from '../types/cosmos.types';
 
-export type { CelestialTarget, CelestialTargetId, SpectralMode, ViewStage };
+export type {
+  CelestialTarget,
+  CelestialTargetId,
+  SpectralMode,
+  ViewStage,
+  InspectionViewMode,
+  SensorFilterMode,
+};
+
+const INITIAL_POV_STATE: {
+  inspectionMode: InspectionViewMode;
+  povYawDeg: number;
+  povPitchDeg: number;
+  povFovZoom: 1 | 2 | 4;
+  povSensorMode: SensorFilterMode;
+} = {
+  inspectionMode: 'MODEL_CLOSEUP',
+  povYawDeg: 0,
+  povPitchDeg: -8,
+  povFovZoom: 1,
+  povSensorMode: 'OPTICAL_RGB',
+};
+
+const INITIAL_DEVICE_CONTROL_STATE: {
+  deviceCameraViewId: DeviceCameraViewId;
+  activePartGroupId: DevicePartGroupId;
+  rotorSpinMode: RotorSpinMode;
+  rotorStepDeg: RotorStepDeg;
+} = {
+  deviceCameraViewId: 'overview',
+  activePartGroupId: 'all',
+  rotorSpinMode: 'stopped',
+  rotorStepDeg: 0,
+};
 
 interface CosmosState {
+  activeBodyId: BodyId;
+  activeDeviceId: string | null;
+  assetLoad: { status: 'idle' | 'loading' | 'ready' | 'error' | 'unavailable'; progress?: number; message?: string };
+  assetRetryTick: number;
+  deviceCameraViewId: DeviceCameraViewId;
+  deviceCameraTick: number;
+  activePartGroupId: DevicePartGroupId;
+  rotorSpinMode: RotorSpinMode;
+  rotorStepDeg: RotorStepDeg;
+  rotorStepTick: number;
+  inspectionMode: InspectionViewMode;
+  povYawDeg: number;
+  povPitchDeg: number;
+  povFovZoom: 1 | 2 | 4;
+  povSensorMode: SensorFilterMode;
+  showOrbits: boolean;
+  showPOIs: boolean;
+  selectBody: (bodyId: BodyId) => void;
+  selectDevice: (id: string) => void;
+  retryAsset: () => void;
+  setAssetLoad: (id: string, load: CosmosState['assetLoad']) => void;
+  setDeviceCameraView: (viewId: DeviceCameraViewId) => void;
+  setActivePartGroup: (groupId: DevicePartGroupId) => void;
+  setRotorSpinMode: (mode: RotorSpinMode) => void;
+  setRotorStepDeg: (deg: RotorStepDeg) => void;
+  resetDeviceControl: () => void;
+  setInspectionMode: (mode: InspectionViewMode) => void;
+  setPovOrientation: (yawDeg: number, pitchDeg: number) => void;
+  setPovFovZoom: (zoom: 1 | 2 | 4) => void;
+  setPovSensorMode: (mode: SensorFilterMode) => void;
+  resetPovCamera: () => void;
+  toggleOrbits: () => void;
+  togglePOIs: () => void;
   viewStage: ViewStage;
   activeTarget: CelestialTarget | null;
   timeScale: number;          // Tốc độ tua thời gian (1 = thực tế, 1000 = tua nhanh quỹ đạo)
@@ -55,13 +130,107 @@ const REQUIRED_LOADING_TASKS = [
 
 export const useCosmosStore = create<CosmosState>()(
   subscribeWithSelector((set, get) => ({
-    viewStage: 'PRELOADING',
+    activeBodyId: 'mars',
+    activeDeviceId: null,
+    assetLoad: { status: 'idle' },
+    assetRetryTick: 0,
+    ...INITIAL_DEVICE_CONTROL_STATE,
+    ...INITIAL_POV_STATE,
+    deviceCameraTick: 0,
+    rotorStepTick: 0,
+    showOrbits: true,
+    showPOIs: true,
+    selectBody: (bodyId) => {
+      if (!BODY_CATALOG[bodyId]) return;
+      set((state) => ({
+        activeBodyId: bodyId,
+        activeTarget: null,
+        activeDeviceId: null,
+        assetLoad: { status: 'idle' },
+        ...INITIAL_DEVICE_CONTROL_STATE,
+        ...INITIAL_POV_STATE,
+        rotorStepTick: state.rotorStepTick + 1,
+        dynamicPositions: {},
+        viewStage: 'ORBITAL_OVERVIEW',
+        spectralMode: 'VISUAL_RGB',
+        controlsLocked: false,
+        cameraResetTick: state.cameraResetTick + 1,
+        floatingOriginOffset: new THREE.Vector3(),
+      }));
+    },
+    selectDevice: (id) => {
+      const device = DEVICE_CATALOG.find((item) => item.id === id && item.bodyId === get().activeBodyId);
+      if (!device) return;
+      const available = device.status === 'available';
+      const current = get();
+      const keepReady = current.activeDeviceId === id && current.assetLoad.status === 'ready';
+      set((state) => ({
+        activeDeviceId: id,
+        activeTarget: null,
+        viewStage: available ? 'SUB_SCENE' : 'ORBITAL_OVERVIEW',
+        controlsLocked: false,
+        assetLoad: keepReady ? current.assetLoad : { status: available ? 'loading' : 'unavailable' },
+        ...INITIAL_DEVICE_CONTROL_STATE,
+        ...INITIAL_POV_STATE,
+        deviceCameraTick: state.deviceCameraTick + 1,
+        rotorStepTick: state.rotorStepTick + 1,
+      }));
+    },
+    retryAsset: () => set((state) => ({ assetRetryTick: state.assetRetryTick + 1 })),
+    setAssetLoad: (id, assetLoad) => { if (get().activeDeviceId === id) set({ assetLoad }); },
+    setDeviceCameraView: (viewId) =>
+      set((state) => ({
+        deviceCameraViewId: viewId,
+        deviceCameraTick: state.deviceCameraTick + 1,
+      })),
+    setActivePartGroup: (groupId) => set({ activePartGroupId: groupId }),
+    setRotorSpinMode: (mode) => set({ rotorSpinMode: mode }),
+    setRotorStepDeg: (deg) =>
+      set((state) => ({
+        rotorStepDeg: deg,
+        rotorSpinMode: 'stopped',
+        rotorStepTick: state.rotorStepTick + 1,
+      })),
+    resetDeviceControl: () =>
+      set((state) => ({
+        ...INITIAL_DEVICE_CONTROL_STATE,
+        deviceCameraTick: state.deviceCameraTick + 1,
+        rotorStepTick: state.rotorStepTick + 1,
+      })),
+    setInspectionMode: (mode) =>
+      set((state) => {
+        const hasDevice = Boolean(state.activeDeviceId);
+        const hasTarget = Boolean(state.activeTarget);
+        const nextStage =
+          mode === 'CONTROL_ROOM_POV' || hasDevice || hasTarget
+            ? 'SUB_SCENE'
+            : state.viewStage;
+        return {
+          inspectionMode: mode,
+          viewStage: nextStage,
+          controlsLocked: false,
+          ...(mode === 'CONTROL_ROOM_POV'
+            ? { povYawDeg: 0, povPitchDeg: -8, povFovZoom: 1 as const }
+            : {}),
+        };
+      }),
+    setPovOrientation: (yawDeg, pitchDeg) =>
+      set({
+        povYawDeg: Math.max(-180, Math.min(180, yawDeg)),
+        povPitchDeg: Math.max(-45, Math.min(45, pitchDeg)),
+      }),
+    setPovFovZoom: (zoom) => set({ povFovZoom: zoom }),
+    setPovSensorMode: (mode) => set({ povSensorMode: mode }),
+    resetPovCamera: () => set({ povYawDeg: 0, povPitchDeg: -8, povFovZoom: 1 }),
+    toggleOrbits: () => set((state) => ({ showOrbits: !state.showOrbits })),
+    togglePOIs: () => set((state) => ({ showPOIs: !state.showPOIs })),
+    viewStage: 'ORBITAL_OVERVIEW',
     activeTarget: null,
     timeScale: 100,
     simulationTime: 0,
     spectralMode: 'VISUAL_RGB',
-    audioMuted: false,
-    controlsLocked: true,
+    audioMuted: true,
+    controlsLocked: false,
     loadingProgress: 0,
     requiredAssetsReady: false,
     loadingStatusLabel: 'Đang khởi tạo hệ thống quang học & bộ giải mã...',
@@ -123,9 +292,14 @@ export const useCosmosStore = create<CosmosState>()(
       }),
 
     selectTarget: (target) => {
+      if (target && target.bodyId !== get().activeBodyId) return;
       if (!target) {
         set({
           activeTarget: null,
+          activeDeviceId: null,
+          assetLoad: { status: 'idle' },
+          ...INITIAL_DEVICE_CONTROL_STATE,
+          ...INITIAL_POV_STATE,
           viewStage: 'ORBITAL_OVERVIEW',
           controlsLocked: false,
         });
@@ -140,6 +314,11 @@ export const useCosmosStore = create<CosmosState>()(
 
       set({
         activeTarget: syncedTarget,
+        activeDeviceId: null,
+        assetLoad: { status: 'idle' },
+        ...INITIAL_DEVICE_CONTROL_STATE,
+        ...INITIAL_POV_STATE,
+        ...(get().spectralMode === 'TERRAIN_MESH_3D' ? { spectralMode: 'VISUAL_RGB' as const } : {}),
         viewStage: 'WARPING',
         controlsLocked: true,
       });
@@ -147,7 +326,7 @@ export const useCosmosStore = create<CosmosState>()(
 
     enterSurfaceLanding: () => {
       const current = get().activeTarget;
-      if (current?.coordinates) {
+      if (current?.coordinates && current.isSurfaceLanding) {
         set({
           viewStage: 'SURFACE_CESIUM',
           controlsLocked: false,
@@ -158,6 +337,11 @@ export const useCosmosStore = create<CosmosState>()(
     returnToOrbit: () =>
       set((state) => ({
         activeTarget: null,
+        activeDeviceId: null,
+        assetLoad: { status: 'idle' },
+        ...INITIAL_DEVICE_CONTROL_STATE,
+        ...INITIAL_POV_STATE,
+        spectralMode: state.spectralMode === 'TERRAIN_MESH_3D' ? 'VISUAL_RGB' : state.spectralMode,
         viewStage: 'WARPING',
         controlsLocked: true,
         cameraResetTick: state.cameraResetTick + 1,
@@ -172,7 +356,27 @@ export const useCosmosStore = create<CosmosState>()(
 
     setTimeScale: (scale) => set({ timeScale: scale }),
 
-    setSpectralMode: (mode) => set({ spectralMode: mode }),
+    setSpectralMode: (mode) => {
+      const currentBody = get().activeBodyId;
+      if (currentBody === 'moon' && mode !== 'VISUAL_RGB') return;
+      set((state) => ({
+        spectralMode: mode,
+        ...(mode === 'TERRAIN_MESH_3D'
+          ? {
+              activeDeviceId: null,
+              inspectionMode: 'MODEL_CLOSEUP' as const,
+              viewStage: 'SUB_SCENE' as const,
+              controlsLocked: false,
+              cameraResetTick: state.cameraResetTick + 1,
+            }
+          : state.spectralMode === 'TERRAIN_MESH_3D' && !state.activeTarget && !state.activeDeviceId
+            ? {
+                viewStage: 'ORBITAL_OVERVIEW' as const,
+                controlsLocked: false,
+              }
+            : {}),
+      }));
+    },
 
     toggleAudio: () => set((state) => ({ audioMuted: !state.audioMuted })),
 

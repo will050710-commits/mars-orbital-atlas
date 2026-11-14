@@ -1,0 +1,19 @@
+[MARS]
+
+Sojourner Rover: Ngee Ann Polytechnic’s Immersive Media Y1 Sem2 Integrated Project 3D Model (src: https://sketchfab.com/3d-models/mars-sojourner-rover-model-8b3810e7cd804bd6b0009520c67984c6)
+
+Spirit, Opportunity Rovers: NASA/JPL-Caltech (src: https://science.nasa.gov/resource/spirit-and-opportunity-rover-3d-model/)
+
+Viking Lander: NASA/JPL-Caltech (src: https://science.nasa.gov/3d-resources/viking-lander/)
+
+InSight Lander: NASA/JPL-Caltech (src: https://science.nasa.gov/resource/insight-lander-3d-model/)
+
+Dawn Spacecraft: NASA/JPL-Caltech (src: https://science.nasa.gov/3d-resources/dawn/)
+
+NEAR Shoemaker: NASA/JPL-Caltech (src: https://science.nasa.gov/3d-resources/near-shoemaker/)
+
+Pioneer 10: NASA/JPL-Caltech (src: https://science.nasa.gov/3d-resources/pioneer/)
+
+Ingenuity Helicopter: NASA/JPL-Caltech (src: https://science.nasa.gov/3d-resources/ingenuity-mars-helicopter/)
+
+Kepler Space Telescope: NASA/JPL-Caltech (src: https://science.nasa.gov/3d-resources/kepler-a/)

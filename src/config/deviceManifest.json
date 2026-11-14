@@ -1,0 +1,677 @@
+[
+  {
+    "id": "sojourner_rover",
+    "bodyId": "mars",
+    "name": "Sojourner",
+    "kind": "Rover",
+    "summary": "Mô hình tham khảo hình dáng; không mô phỏng vận hành hay xác nhận tỉ lệ vật lý.",
+    "evidence": "Mars-20261114T010556Z-1-001.zip / Mars/Attributions.txt",
+    "source": {
+      "title": "Sojourner",
+      "url": "https://sketchfab.com/3d-models/mars-sojourner-rover-model-8b3810e7cd804bd6b0009520c67984c6",
+      "checked": "2026-11-14",
+      "version": "Supplied ZIP; original GLB bytes"
+    },
+    "credit": "Dan / danthemodeler; Ngee Ann Polytechnic (attribution in supplied ZIP)",
+    "license": {
+      "label": "CC BY 4.0",
+      "url": "https://creativecommons.org/licenses/by/4.0/",
+      "checked": "2026-11-14"
+    },
+    "units": "glTF meters convention; physical dimensions unverified",
+    "transform": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "normalization": "fit-longest-side-2",
+      "physicalScaleVerified": false
+    },
+    "version": "1.0.0",
+    "status": "available",
+    "modelPath": "/assets/models/mars/sojourner_rover.glb",
+    "bytes": 6414204,
+    "sha256": "2df291ab9fadc150f1990d59bca87a9968fc58310875f6b21706f61229ce4086",
+    "attributionPath": "/assets/attribution/Mars-Attributions.txt",
+    "coordinates": {
+      "lat": 19.13,
+      "lon": 326.78
+    }
+  },
+  {
+    "id": "spirit_and_opportunity_rover",
+    "bodyId": "mars",
+    "name": "Spirit / Opportunity",
+    "kind": "Rover",
+    "summary": "Mô hình tham khảo hình dáng; không mô phỏng vận hành hay xác nhận tỉ lệ vật lý.",
+    "evidence": "Mars-20261114T010556Z-1-001.zip / Mars/Attributions.txt",
+    "source": {
+      "title": "Spirit / Opportunity",
+      "url": "https://science.nasa.gov/resource/spirit-and-opportunity-rover-3d-model/",
+      "checked": "2026-11-14",
+      "version": "Supplied ZIP; original GLB bytes"
+    },
+    "credit": "NASA/JPL-Caltech",
+    "license": {
+      "label": "NASA media usage guidelines",
+      "url": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+      "checked": "2026-11-14"
+    },
+    "units": "glTF meters convention; physical dimensions unverified",
+    "transform": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "normalization": "fit-longest-side-2",
+      "physicalScaleVerified": false
+    },
+    "version": "1.0.0",
+    "status": "available",
+    "modelPath": "/assets/models/mars/spirit_and_opportunity_rover.glb",
+    "bytes": 11910084,
+    "sha256": "efad9c6275d832d86e7232d63520e48628797d9a7f7c7ff870b28d175ac8b250",
+    "attributionPath": "/assets/attribution/Mars-Attributions.txt",
+    "coordinates": {
+      "lat": -14.57,
+      "lon": 175.47
+    }
+  },
+  {
+    "id": "viking_lander",
+    "bodyId": "mars",
+    "name": "Viking landers",
+    "kind": "Lander",
+    "summary": "Mô hình tham khảo hình dáng; không mô phỏng vận hành hay xác nhận tỉ lệ vật lý.",
+    "evidence": "Mars-20261114T010556Z-1-001.zip / Mars/Attributions.txt",
+    "source": {
+      "title": "Viking landers",
+      "url": "https://science.nasa.gov/3d-resources/viking-lander/",
+      "checked": "2026-11-14",
+      "version": "Supplied ZIP; original GLB bytes"
+    },
+    "credit": "NASA/Michael D. Carbajal (source page); NASA/JPL-Caltech (supplied ZIP)",
+    "license": {
+      "label": "NASA media usage guidelines",
+      "url": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+      "checked": "2026-11-14"
+    },
+    "units": "glTF meters convention; physical dimensions unverified",
+    "transform": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "normalization": "fit-longest-side-2",
+      "physicalScaleVerified": false
+    },
+    "version": "1.0.0",
+    "status": "available",
+    "modelPath": "/assets/models/mars/viking_lander.glb",
+    "bytes": 1849384,
+    "sha256": "1233dc2c96a1c0b08ca9a20f7ed9c09e0223f06f14f6ae6371349504c1929149",
+    "attributionPath": "/assets/attribution/Mars-Attributions.txt",
+    "coordinates": {
+      "lat": 22.27,
+      "lon": 312.05
+    }
+  },
+  {
+    "id": "insight_lander",
+    "bodyId": "mars",
+    "name": "InSight",
+    "kind": "Lander",
+    "summary": "Mô hình tham khảo hình dáng; không mô phỏng vận hành hay xác nhận tỉ lệ vật lý.",
+    "evidence": "Mars-20261114T010556Z-1-001.zip / Mars/Attributions.txt",
+    "source": {
+      "title": "InSight",
+      "url": "https://science.nasa.gov/resource/insight-lander-3d-model/",
+      "checked": "2026-11-14",
+      "version": "Supplied ZIP; original GLB bytes"
+    },
+    "credit": "NASA/JPL-Caltech",
+    "license": {
+      "label": "NASA media usage guidelines",
+      "url": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+      "checked": "2026-11-14"
+    },
+    "units": "glTF meters convention; physical dimensions unverified",
+    "transform": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "normalization": "fit-longest-side-2",
+      "physicalScaleVerified": false
+    },
+    "version": "1.0.0",
+    "status": "available",
+    "modelPath": "/assets/models/mars/insight_lander.glb",
+    "bytes": 22357936,
+    "sha256": "1e944bedb23af07962ba9f2b88d195b561665f255573b29ba7d028293a179387",
+    "attributionPath": "/assets/attribution/Mars-Attributions.txt",
+    "coordinates": {
+      "lat": 4.502,
+      "lon": 135.623
+    }
+  },
+  {
+    "id": "ingenuity_helicopter",
+    "bodyId": "mars",
+    "name": "Ingenuity",
+    "kind": "Helicopter",
+    "summary": "Mô hình tham khảo hình dáng; không mô phỏng vận hành hay xác nhận tỉ lệ vật lý.",
+    "evidence": "Mars-20261114T010556Z-1-001.zip / Mars/Attributions.txt",
+    "source": {
+      "title": "Ingenuity",
+      "url": "https://science.nasa.gov/3d-resources/ingenuity-mars-helicopter/",
+      "checked": "2026-11-14",
+      "version": "Supplied ZIP; original GLB bytes"
+    },
+    "credit": "NASA/Brian E. Kumanchik (source page); NASA/JPL-Caltech (supplied ZIP)",
+    "license": {
+      "label": "NASA media usage guidelines",
+      "url": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+      "checked": "2026-11-14"
+    },
+    "units": "glTF meters convention; physical dimensions unverified",
+    "transform": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "normalization": "fit-longest-side-2",
+      "physicalScaleVerified": false
+    },
+    "version": "1.0.0",
+    "status": "available",
+    "modelPath": "/assets/models/mars/ingenuity_helicopter.glb",
+    "bytes": 2019408,
+    "sha256": "9e5a5398ab335eae7d46335085301ce46fb7de052300b645debe8bac6d39f2b5",
+    "attributionPath": "/assets/attribution/Mars-Attributions.txt",
+    "coordinates": {
+      "lat": 18.38,
+      "lon": 77.58
+    }
+  },
+  {
+    "id": "dawn_spacecraft",
+    "bodyId": "mars",
+    "name": "Dawn Spacecraft",
+    "kind": "Orbiter / Probe",
+    "summary": "Mô hình tham khảo hình dáng; không mô phỏng vận hành hay xác nhận tỉ lệ vật lý.",
+    "evidence": "Mars-20261114T010556Z-1-001.zip / Mars/Attributions.txt",
+    "source": {
+      "title": "Dawn Spacecraft",
+      "url": "https://science.nasa.gov/3d-resources/dawn/",
+      "checked": "2026-11-14",
+      "version": "Supplied ZIP; original GLB bytes"
+    },
+    "credit": "NASA/JPL-Caltech (supplied ZIP)",
+    "license": {
+      "label": "NASA media usage guidelines",
+      "url": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+      "checked": "2026-11-14"
+    },
+    "units": "glTF meters convention; physical dimensions unverified",
+    "transform": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "normalization": "fit-longest-side-2",
+      "physicalScaleVerified": false
+    },
+    "version": "1.0.0",
+    "status": "available",
+    "modelPath": "/assets/models/mars/dawn_spacecraft.glb",
+    "bytes": 927020,
+    "sha256": "411249aed791994b6a2014894ad6bd7ca0445dbcf6d5342af9edc5df988f04b7",
+    "attributionPath": "/assets/attribution/Mars-Attributions.txt"
+  },
+  {
+    "id": "near_shoemaker",
+    "bodyId": "mars",
+    "name": "NEAR Shoemaker",
+    "kind": "Orbiter / Probe",
+    "summary": "Mô hình tham khảo hình dáng; không mô phỏng vận hành hay xác nhận tỉ lệ vật lý.",
+    "evidence": "Mars-20261114T010556Z-1-001.zip / Mars/Attributions.txt",
+    "source": {
+      "title": "NEAR Shoemaker",
+      "url": "https://science.nasa.gov/3d-resources/near-shoemaker/",
+      "checked": "2026-11-14",
+      "version": "Supplied ZIP; original GLB bytes"
+    },
+    "credit": "NASA/JPL-Caltech (supplied ZIP)",
+    "license": {
+      "label": "NASA media usage guidelines",
+      "url": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+      "checked": "2026-11-14"
+    },
+    "units": "glTF meters convention; physical dimensions unverified",
+    "transform": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "normalization": "fit-longest-side-2",
+      "physicalScaleVerified": false
+    },
+    "version": "1.0.0",
+    "status": "available",
+    "modelPath": "/assets/models/mars/near_shoemaker.glb",
+    "bytes": 701808,
+    "sha256": "f3de2f87c97685b207be97e80d7cdca37d1567dd68204e1feb2d85f90e3adb0c",
+    "attributionPath": "/assets/attribution/Mars-Attributions.txt"
+  },
+  {
+    "id": "pioneer_10",
+    "bodyId": "mars",
+    "name": "Pioneer 10",
+    "kind": "Spacecraft",
+    "summary": "Mô hình tham khảo hình dáng; không mô phỏng vận hành hay xác nhận tỉ lệ vật lý.",
+    "evidence": "Mars-20261114T010556Z-1-001.zip / Mars/Attributions.txt",
+    "source": {
+      "title": "Pioneer 10",
+      "url": "https://science.nasa.gov/3d-resources/pioneer/",
+      "checked": "2026-11-14",
+      "version": "Supplied ZIP; original GLB bytes"
+    },
+    "credit": "NASA/JPL-Caltech (supplied ZIP)",
+    "license": {
+      "label": "NASA media usage guidelines",
+      "url": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+      "checked": "2026-11-14"
+    },
+    "units": "glTF meters convention; physical dimensions unverified",
+    "transform": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "normalization": "fit-longest-side-2",
+      "physicalScaleVerified": false
+    },
+    "version": "1.0.0",
+    "status": "available",
+    "modelPath": "/assets/models/mars/pioneer_10.glb",
+    "bytes": 2049840,
+    "sha256": "81443a7fa01cca0dda878cd27692b3307f9c332c4eb8e55a844499d7b350573c",
+    "attributionPath": "/assets/attribution/Mars-Attributions.txt"
+  },
+  {
+    "id": "kepler_space_telescope",
+    "bodyId": "mars",
+    "name": "Kepler Space Telescope",
+    "kind": "Space Telescope",
+    "summary": "Mô hình tham khảo hình dáng; không mô phỏng vận hành hay xác nhận tỉ lệ vật lý.",
+    "evidence": "Mars-20261114T010556Z-1-001.zip / Mars/Attributions.txt",
+    "source": {
+      "title": "Kepler Space Telescope",
+      "url": "https://science.nasa.gov/3d-resources/kepler-a/",
+      "checked": "2026-11-14",
+      "version": "Supplied ZIP; original GLB bytes"
+    },
+    "credit": "NASA/JPL-Caltech (supplied ZIP)",
+    "license": {
+      "label": "NASA media usage guidelines",
+      "url": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+      "checked": "2026-11-14"
+    },
+    "units": "glTF meters convention; physical dimensions unverified",
+    "transform": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "normalization": "fit-longest-side-2",
+      "physicalScaleVerified": false
+    },
+    "version": "1.0.0",
+    "status": "available",
+    "modelPath": "/assets/models/mars/kepler_space_telescope.glb",
+    "bytes": 2003276,
+    "sha256": "382014d90e2cf3e1f23e931d233547e652fe3629fddfb5acb8a99e2ceb72ff19",
+    "attributionPath": "/assets/attribution/Mars-Attributions.txt"
+  },
+  {
+    "id": "mro_orbiter",
+    "bodyId": "mars",
+    "name": "Mars Reconnaissance Orbiter (MRO)",
+    "kind": "Orbiter",
+    "summary": "Mô hình tham khảo hình dáng; không mô phỏng vận hành hay xác nhận tỉ lệ vật lý.",
+    "evidence": "public/assets/models/spacecraft/mars_reconnaissance_orbiter.glb",
+    "source": {
+      "title": "Mars Reconnaissance Orbiter (MRO)",
+      "url": "https://mars.nasa.gov/mro/",
+      "checked": "2026-11-14",
+      "version": "Repository Draco GLB asset"
+    },
+    "credit": "NASA/JPL-Caltech (workspace spacecraft GLB)",
+    "license": {
+      "label": "NASA media usage guidelines",
+      "url": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+      "checked": "2026-11-14"
+    },
+    "units": "glTF meters convention; physical dimensions unverified",
+    "transform": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "normalization": "fit-longest-side-2",
+      "physicalScaleVerified": false
+    },
+    "version": "1.0.0",
+    "status": "available",
+    "modelPath": "/assets/models/mars/mro_orbiter.glb",
+    "bytes": 5924,
+    "sha256": "3e63cadc4abeb10b2a6e2e1717c55c3b932b026cc58c17e0ae87c18e97518bb6"
+  },
+  {
+    "id": "curiosity_rover",
+    "bodyId": "mars",
+    "name": "Curiosity",
+    "kind": "Rover",
+    "summary": "Có trong tài liệu; chưa có GLB NASA gốc xác minh. Hỗ trợ mô hình 3D tái dựng minh họa & góc nhìn buồng điều khiển.",
+    "evidence": "Thitb-Tiliunndng-Nidungclichothitkgcnhn (1).csv",
+    "source": {
+      "title": "Thitb-Tiliunndng-Nidungclichothitkgcnhn (1).csv",
+      "url": "/assets/provenance/mars-rovers.csv",
+      "checked": "2026-11-14",
+      "version": "User-supplied notes; undated"
+    },
+    "credit": "NASA references named in supplied device notes",
+    "license": {
+      "label": "No model supplied",
+      "url": "",
+      "checked": "2026-11-14"
+    },
+    "units": "glTF meters convention; physical dimensions unverified",
+    "transform": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "normalization": "fit-longest-side-2",
+      "physicalScaleVerified": false
+    },
+    "version": "1.0.0",
+    "status": "unavailable",
+    "proceduralModel": "mars_rover_rtg",
+    "coordinates": {
+      "lat": -4.5895,
+      "lon": 137.4417
+    }
+  },
+  {
+    "id": "perseverance_rover",
+    "bodyId": "mars",
+    "name": "Perseverance",
+    "kind": "Rover",
+    "summary": "Có trong tài liệu; chưa có GLB NASA gốc xác minh. Hỗ trợ mô hình 3D tái dựng minh họa & góc nhìn buồng điều khiển.",
+    "evidence": "Thitb-Tiliunndng-Nidungclichothitkgcnhn (1).csv",
+    "source": {
+      "title": "Thitb-Tiliunndng-Nidungclichothitkgcnhn (1).csv",
+      "url": "/assets/provenance/mars-rovers.csv",
+      "checked": "2026-11-14",
+      "version": "User-supplied notes; undated"
+    },
+    "credit": "NASA references named in supplied device notes",
+    "license": {
+      "label": "No model supplied",
+      "url": "",
+      "checked": "2026-11-14"
+    },
+    "units": "glTF meters convention; physical dimensions unverified",
+    "transform": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "normalization": "fit-longest-side-2",
+      "physicalScaleVerified": false
+    },
+    "version": "1.0.0",
+    "status": "unavailable",
+    "proceduralModel": "mars_rover_rtg",
+    "coordinates": {
+      "lat": 18.38,
+      "lon": 77.58
+    }
+  },
+  {
+    "id": "apollo_lrv",
+    "bodyId": "moon",
+    "name": "Lunar Roving Vehicle (LRV)",
+    "kind": "Rover",
+    "summary": "Có trong tài liệu; không có GLB Mặt Trăng được cung cấp và xác minh. Sổ tay vận hành, hệ thống, sơ đồ bố trí thiết bị, camera TV, ăng-ten, tay điều khiển và hệ thống dẫn đường của LRV.",
+    "evidence": "Thitb-Tiliunndng-Nidungclichothitkgcnhn (2).csv",
+    "source": {
+      "title": "Apollo equipment notes (supplied CSV)",
+      "url": "/assets/provenance/apollo-equipment.csv",
+      "checked": "2026-11-14",
+      "version": "User-supplied notes; undated"
+    },
+    "credit": "NASA / Lunar and Planetary Institute references named in supplied device notes",
+    "license": {
+      "label": "No model supplied",
+      "url": "",
+      "checked": "2026-11-14"
+    },
+    "units": "Không có mô hình 3D gốc; hỗ trợ mô hình tái dựng minh họa & buồng điều khiển POV.",
+    "transform": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "normalization": "fit-longest-side-2",
+      "physicalScaleVerified": false
+    },
+    "version": "1.0.0",
+    "status": "unavailable",
+    "proceduralModel": "apollo_lrv",
+    "coordinates": {
+      "lat": 26.1322,
+      "lon": 3.6339
+    }
+  },
+  {
+    "id": "apollo_lrv_deployment",
+    "bodyId": "moon",
+    "name": "LRV deployment mechanism & chassis",
+    "kind": "Cơ cấu triển khai",
+    "summary": "Có trong tài liệu; không có GLB Mặt Trăng được cung cấp và xác minh. Cơ cấu triển khai, khung xe, 4 bánh dẫn động độc lập, hệ thống treo và 2 pin silver-zinc.",
+    "evidence": "Thitb-Tiliunndng-Nidungclichothitkgcnhn (2).csv",
+    "source": {
+      "title": "Apollo equipment notes (supplied CSV)",
+      "url": "/assets/provenance/apollo-equipment.csv",
+      "checked": "2026-11-14",
+      "version": "User-supplied notes; undated"
+    },
+    "credit": "NASA / Lunar and Planetary Institute references named in supplied device notes",
+    "license": {
+      "label": "No model supplied",
+      "url": "",
+      "checked": "2026-11-14"
+    },
+    "units": "Không có mô hình 3D gốc; hỗ trợ mô hình tái dựng minh họa & buồng điều khiển POV.",
+    "transform": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "normalization": "fit-longest-side-2",
+      "physicalScaleVerified": false
+    },
+    "version": "1.0.0",
+    "status": "unavailable",
+    "proceduralModel": "apollo_lrv_deploy",
+    "coordinates": {
+      "lat": 26.1322,
+      "lon": 3.6339
+    }
+  },
+  {
+    "id": "apollo_15_lrv",
+    "bodyId": "moon",
+    "name": "LRV Apollo 15",
+    "kind": "Rover",
+    "summary": "Có trong tài liệu; không có GLB Mặt Trăng được cung cấp và xác minh. LRV-1: cấu hình ghế lái, bảng điều khiển, camera và thiết bị gắn ngoài theo sổ tay hệ thống Apollo 15.",
+    "evidence": "Thitb-Tiliunndng-Nidungclichothitkgcnhn (2).csv",
+    "source": {
+      "title": "Apollo equipment notes (supplied CSV)",
+      "url": "/assets/provenance/apollo-equipment.csv",
+      "checked": "2026-11-14",
+      "version": "User-supplied notes; undated"
+    },
+    "credit": "NASA / Lunar and Planetary Institute references named in supplied device notes",
+    "license": {
+      "label": "No model supplied",
+      "url": "",
+      "checked": "2026-11-14"
+    },
+    "units": "Không có mô hình 3D gốc; hỗ trợ mô hình tái dựng minh họa & buồng điều khiển POV.",
+    "transform": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "normalization": "fit-longest-side-2",
+      "physicalScaleVerified": false
+    },
+    "version": "1.0.0",
+    "status": "unavailable",
+    "proceduralModel": "apollo_lrv",
+    "coordinates": {
+      "lat": 26.1322,
+      "lon": 3.6339
+    }
+  },
+  {
+    "id": "apollo_17_lrv",
+    "bodyId": "moon",
+    "name": "LRV Apollo 17",
+    "kind": "Rover",
+    "summary": "Có trong tài liệu; không có GLB Mặt Trăng được cung cấp và xác minh. LRV-3: khác biệt về thiết bị địa chất và bố trí phía sau so với Apollo 15 theo sổ tay hệ thống Apollo 17.",
+    "evidence": "Thitb-Tiliunndng-Nidungclichothitkgcnhn (2).csv",
+    "source": {
+      "title": "Apollo equipment notes (supplied CSV)",
+      "url": "/assets/provenance/apollo-equipment.csv",
+      "checked": "2026-11-14",
+      "version": "User-supplied notes; undated"
+    },
+    "credit": "NASA / Lunar and Planetary Institute references named in supplied device notes",
+    "license": {
+      "label": "No model supplied",
+      "url": "",
+      "checked": "2026-11-14"
+    },
+    "units": "Không có mô hình 3D gốc; hỗ trợ mô hình tái dựng minh họa & buồng điều khiển POV.",
+    "transform": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "normalization": "fit-longest-side-2",
+      "physicalScaleVerified": false
+    },
+    "version": "1.0.0",
+    "status": "unavailable",
+    "proceduralModel": "apollo_lrv",
+    "coordinates": {
+      "lat": 20.1908,
+      "lon": 30.7717
+    }
+  },
+  {
+    "id": "apollo_surface_equipment",
+    "bodyId": "moon",
+    "name": "Apollo surface equipment",
+    "kind": "Thiết bị bề mặt",
+    "summary": "Có trong tài liệu; không có GLB Mặt Trăng được cung cấp và xác minh. Danh mục tài liệu cho Modular Equipment Transporter (MET), bộ đồ EVA, dụng cụ lấy mẫu, hệ thống dẫn đường LRV và thiết bị Apollo khác.",
+    "evidence": "Thitb-Tiliunndng-Nidungclichothitkgcnhn (2).csv",
+    "source": {
+      "title": "Apollo equipment notes (supplied CSV)",
+      "url": "/assets/provenance/apollo-equipment.csv",
+      "checked": "2026-11-14",
+      "version": "User-supplied notes; undated"
+    },
+    "credit": "NASA / Lunar and Planetary Institute references named in supplied device notes",
+    "license": {
+      "label": "No model supplied",
+      "url": "",
+      "checked": "2026-11-14"
+    },
+    "units": "Không có mô hình 3D gốc; hỗ trợ mô hình tái dựng minh họa & buồng điều khiển POV.",
+    "transform": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "normalization": "fit-longest-side-2",
+      "physicalScaleVerified": false
+    },
+    "version": "1.0.0",
+    "status": "unavailable",
+    "proceduralModel": "apollo_surface_pack",
+    "coordinates": {
+      "lat": -3.6453,
+      "lon": 342.5283
+    }
+  },
+  {
+    "id": "apollo_lm_equipment",
+    "bodyId": "moon",
+    "name": "Lunar Module MESA & attached equipment",
+    "kind": "Thiết bị Lunar Module",
+    "summary": "Có trong tài liệu; không có GLB Mặt Trăng được cung cấp và xác minh. Sơ đồ MESA, camera TV, ăng-ten S-band, thí nghiệm khoa học, hộp mẫu và cơ cấu triển khai gắn với Lunar Module.",
+    "evidence": "Thitb-Tiliunndng-Nidungclichothitkgcnhn (2).csv",
+    "source": {
+      "title": "Apollo equipment notes (supplied CSV)",
+      "url": "/assets/provenance/apollo-equipment.csv",
+      "checked": "2026-11-14",
+      "version": "User-supplied notes; undated"
+    },
+    "credit": "NASA / Lunar and Planetary Institute references named in supplied device notes",
+    "license": {
+      "label": "No model supplied",
+      "url": "",
+      "checked": "2026-11-14"
+    },
+    "units": "Không có mô hình 3D gốc; hỗ trợ mô hình tái dựng minh họa & buồng điều khiển POV.",
+    "transform": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "normalization": "fit-longest-side-2",
+      "physicalScaleVerified": false
+    },
+    "version": "1.0.0",
+    "status": "unavailable",
+    "proceduralModel": "apollo_lm_mesa",
+    "coordinates": {
+      "lat": 0.6741,
+      "lon": 23.473
+    }
+  }
+]

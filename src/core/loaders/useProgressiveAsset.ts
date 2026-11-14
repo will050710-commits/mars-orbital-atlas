@@ -3,15 +3,14 @@ import * as THREE from 'three';
 import { assetManager } from './KTX2DracoManager';
 import { useCosmosStore } from '../../store/useCosmosStore';
 
-export interface MarsPlanetaryTextures {
+export interface BodyPlanetaryTextures {
   albedo: THREE.Texture;
   normal: THREE.Texture;
   roughness: THREE.Texture;
-  thermalIr: THREE.Texture;
-  molaElevation: THREE.Texture;
+  thermalPreview: THREE.Texture;
+  elevationPreview: THREE.Texture;
 }
 
-let cachedMarsTextures: MarsPlanetaryTextures | null = null;
 
 /**
  * Deterministic 2D/3D value noise for realistic Martian terrain synthesis
@@ -93,14 +92,48 @@ function sampleMarsTopography(u: number, v: number): number {
   );
 }
 
-function generateProceduralMarsTextures(): MarsPlanetaryTextures {
-  if (cachedMarsTextures) return cachedMarsTextures;
+function makeDataTexture(data: Uint8Array, width: number, height: number, isSRGB: boolean): THREE.Texture {
+  const tex = new THREE.DataTexture(data, width, height, THREE.RGBAFormat);
+  tex.colorSpace = isSRGB ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.wrapT = THREE.ClampToEdgeWrapping;
+  tex.magFilter = THREE.LinearFilter;
+  tex.minFilter = THREE.LinearMipmapLinearFilter;
+  tex.generateMipmaps = true;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+function computeNormalMap(heightField: Float32Array, width: number, height: number, bumpStrength: number): Uint8Array {
+  const normalData = new Uint8Array(width * height * 4);
+  for (let y = 0; y < height; y++) {
+    const yUp = Math.max(0, y - 1);
+    const yDown = Math.min(height - 1, y + 1);
+    for (let x = 0; x < width; x++) {
+      const xLeft = (x - 1 + width) % width;
+      const xRight = (x + 1) % width;
+      const dX = (heightField[y * width + xRight] - heightField[y * width + xLeft]) * bumpStrength;
+      const dY = (heightField[yDown * width + x] - heightField[yUp * width + x]) * bumpStrength;
+      const invLen = 1 / Math.sqrt(dX * dX + dY * dY + 1);
+      const nx = (-dX * invLen * 0.5 + 0.5) * 255;
+      const ny = (-dY * invLen * 0.5 + 0.5) * 255;
+      const nz = (invLen * 0.5 + 0.5) * 255;
+      const p4 = (y * width + x) * 4;
+      normalData[p4] = Math.round(nx);
+      normalData[p4 + 1] = Math.round(ny);
+      normalData[p4 + 2] = Math.round(nz);
+      normalData[p4 + 3] = 255;
+    }
+  }
+  return normalData;
+}
+
+export function generateProceduralMarsTextures(): BodyPlanetaryTextures {
 
   const width = 1024;
   const height = 512;
 
   const albedoData = new Uint8Array(width * height * 4);
-  const normalData = new Uint8Array(width * height * 4);
   const roughnessData = new Uint8Array(width * height * 4);
   const thermalData = new Uint8Array(width * height * 4);
   const molaData = new Uint8Array(width * height * 4);
@@ -196,56 +229,146 @@ function generateProceduralMarsTextures(): MarsPlanetaryTextures {
     }
   }
 
-  // Pass 2: Compute tangent-space Normal Map from heightField central differences
-  const bumpStrength = 6.5;
+  return {
+    albedo: makeDataTexture(albedoData, width, height, true),
+    normal: makeDataTexture(computeNormalMap(heightField, width, height, 6.5), width, height, false),
+    roughness: makeDataTexture(roughnessData, width, height, false),
+    thermalPreview: makeDataTexture(thermalData, width, height, true),
+    elevationPreview: makeDataTexture(molaData, width, height, true),
+  };
+}
+
+export interface BakedMarsWebPSet {
+  albedo: THREE.Texture;
+  normal: THREE.Texture;
+  roughness: THREE.Texture;
+}
+
+export const MARS_BAKED_WEBP_URLS = {
+  albedo: '/assets/textures/mars_albedo_baked.webp',
+  normal: '/assets/textures/mars_normals.webp',
+  roughness: '/assets/textures/mars_roughness.webp',
+} as const;
+
+/**
+ * Loads the supplied baked 8K Mars WebP texture suite asynchronously.
+ * Callers own disposal of the returned Texture instances.
+ */
+export async function loadBakedMarsWebPTextures(options?: {
+  flipY?: boolean;
+  signal?: AbortSignal;
+}): Promise<BakedMarsWebPSet> {
+  const flipY = options?.flipY ?? true;
+  const loader = new THREE.TextureLoader();
+
+  const loadOne = (url: string, isSRGB: boolean) =>
+    new Promise<THREE.Texture>((resolve, reject) => {
+      if (options?.signal?.aborted) {
+        reject(new DOMException('Aborted', 'AbortError'));
+        return;
+      }
+      loader.load(
+        url,
+        (tex) => {
+          tex.flipY = flipY;
+          tex.wrapS = THREE.ClampToEdgeWrapping;
+          tex.wrapT = THREE.ClampToEdgeWrapping;
+          tex.colorSpace = isSRGB ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+          tex.anisotropy = 4;
+          tex.needsUpdate = true;
+          resolve(tex);
+        },
+        undefined,
+        (err) => reject(err),
+      );
+    });
+
+  const [albedo, normal, roughness] = await Promise.all([
+    loadOne(MARS_BAKED_WEBP_URLS.albedo, true),
+    loadOne(MARS_BAKED_WEBP_URLS.normal, false),
+    loadOne(MARS_BAKED_WEBP_URLS.roughness, false),
+  ]);
+
+  if (options?.signal?.aborted) {
+    albedo.dispose();
+    normal.dispose();
+    roughness.dispose();
+    throw new DOMException('Aborted', 'AbortError');
+  }
+
+  return { albedo, normal, roughness };
+}
+
+/**
+ * Generic grayscale crater/maria texture for illustrative lunar display.
+ * It does not encode measured imagery, LOLA elevation or real feature positions.
+ */
+function sampleMoonSurface(u: number, v: number): number {
+  const lat = (0.5 - v) * 180;
+  const maria = fbm(u * 4.3 + 9.1, v * 3.1 + 2.7, 4);
+  const crater = fbm(u * 26 + 4.3, v * 13 + 7.9, 5);
+  const fine = fbm(u * 72 + 1.3, v * 36 + 5.1, 3);
+  const mariaMask = THREE.MathUtils.smoothstep(maria, 0.52, 0.64) * (0.7 + 0.3 * Math.cos(lat * Math.PI / 180));
+  const ridge = Math.abs(fbm(u * 7.5 + 12.4, v * 4.6 + 6.8, 4) - 0.5) * 2;
+  return THREE.MathUtils.clamp(0.55 + (crater - 0.5) * 0.55 + (fine - 0.5) * 0.16 - mariaMask * 0.34 + ridge * 0.06, 0, 1);
+}
+
+export function generateProceduralMoonTextures(): BodyPlanetaryTextures {
+  const width = 1024;
+  const height = 512;
+  const albedoData = new Uint8Array(width * height * 4);
+  const roughnessData = new Uint8Array(width * height * 4);
+  const thermalData = new Uint8Array(width * height * 4);
+  const elevationData = new Uint8Array(width * height * 4);
+  const heightField = new Float32Array(width * height);
+
   for (let y = 0; y < height; y++) {
-    const yUp = Math.max(0, y - 1);
-    const yDown = Math.min(height - 1, y + 1);
+    const v = y / (height - 1);
     for (let x = 0; x < width; x++) {
-      const xLeft = (x - 1 + width) % width;
-      const xRight = (x + 1) % width;
+      const u = x / (width - 1);
+      const idx = y * width + x;
+      const p4 = idx * 4;
+      const shade = sampleMoonSurface(u, v);
+      heightField[idx] = shade;
 
-      const dX = (heightField[y * width + xRight] - heightField[y * width + xLeft]) * bumpStrength;
-      const dY = (heightField[yDown * width + x] - heightField[yUp * width + x]) * bumpStrength;
-      const invLen = 1 / Math.sqrt(dX * dX + dY * dY + 1);
+      const gray = Math.round(THREE.MathUtils.clamp(92 + shade * 126, 0, 255));
+      albedoData[p4] = gray;
+      albedoData[p4 + 1] = gray;
+      albedoData[p4 + 2] = Math.round(gray * 0.97);
+      albedoData[p4 + 3] = 255;
 
-      const nx = (-dX * invLen * 0.5 + 0.5) * 255;
-      const ny = (-dY * invLen * 0.5 + 0.5) * 255;
-      const nz = (invLen * 0.5 + 0.5) * 255;
+      const rough = Math.round(THREE.MathUtils.clamp((0.94 - shade * 0.12) * 255, 120, 250));
+      roughnessData[p4] = rough;
+      roughnessData[p4 + 1] = rough;
+      roughnessData[p4 + 2] = rough;
+      roughnessData[p4 + 3] = 255;
 
-      const p4 = (y * width + x) * 4;
-      normalData[p4] = Math.round(nx);
-      normalData[p4 + 1] = Math.round(ny);
-      normalData[p4 + 2] = Math.round(nz);
-      normalData[p4 + 3] = 255;
+      // Preview tiles only: not measured temperature or elevation.
+      const thermal = Math.round(THREE.MathUtils.clamp(48 + shade * 148, 0, 255));
+      thermalData[p4] = thermal;
+      thermalData[p4 + 1] = Math.round(thermal * 0.92);
+      thermalData[p4 + 2] = Math.round(thermal * 0.82);
+      thermalData[p4 + 3] = 255;
+
+      const elevation = Math.round(THREE.MathUtils.clamp(shade * 255, 0, 255));
+      elevationData[p4] = elevation;
+      elevationData[p4 + 1] = elevation;
+      elevationData[p4 + 2] = elevation;
+      elevationData[p4 + 3] = 255;
     }
   }
 
-  const makeDataTex = (data: Uint8Array, isSRGB: boolean) => {
-    const tex = new THREE.DataTexture(data, width, height, THREE.RGBAFormat);
-    tex.colorSpace = isSRGB ? THREE.SRGBColorSpace : THREE.NoColorSpace;
-    tex.wrapS = THREE.RepeatWrapping;
-    tex.wrapT = THREE.ClampToEdgeWrapping;
-    tex.magFilter = THREE.LinearFilter;
-    tex.minFilter = THREE.LinearMipmapLinearFilter;
-    tex.generateMipmaps = true;
-    tex.needsUpdate = true;
-    return tex;
+  return {
+    albedo: makeDataTexture(albedoData, width, height, true),
+    normal: makeDataTexture(computeNormalMap(heightField, width, height, 5.5), width, height, false),
+    roughness: makeDataTexture(roughnessData, width, height, false),
+    thermalPreview: makeDataTexture(thermalData, width, height, true),
+    elevationPreview: makeDataTexture(elevationData, width, height, true),
   };
-
-  cachedMarsTextures = {
-    albedo: makeDataTex(albedoData, true),
-    normal: makeDataTex(normalData, false),
-    roughness: makeDataTex(roughnessData, false),
-    thermalIr: makeDataTex(thermalData, true),
-    molaElevation: makeDataTex(molaData, true),
-  };
-
-  return cachedMarsTextures;
 }
 
-export function useProgressiveMarsTextures(renderer: THREE.WebGLRenderer): MarsPlanetaryTextures {
-  const [textures, setTextures] = useState<MarsPlanetaryTextures>(() =>
+export function useProgressiveMarsTextures(renderer: THREE.WebGLRenderer): BodyPlanetaryTextures {
+  const [textures, setTextures] = useState<BodyPlanetaryTextures>(() =>
     generateProceduralMarsTextures(),
   );
 

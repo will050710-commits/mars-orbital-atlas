@@ -6,6 +6,7 @@ import { CosmosSceneRoot } from '../../scene/CosmosSceneRoot';
 import { PostProcessingRig } from '../postprocessing/PostProcessingRig';
 import { SplineCameraRig } from '../camera/SplineCameraRig';
 import { FloatingOriginManager } from './FloatingOriginManager';
+import { registerRenderer } from './rendererDiagnostics';
 
 export const MarsCanvas: React.FC = () => {
   const directionalLightRef = useRef<THREE.DirectionalLight | null>(null);
@@ -13,6 +14,7 @@ export const MarsCanvas: React.FC = () => {
   return (
     <div className="mars-canvas-wrapper">
       <Canvas
+        onCreated={({ gl }) => registerRenderer(gl)}
         gl={{
           powerPreference: 'high-performance',
           antialias: false, // Tắt MSAA mặc định để nhường tài nguyên cho Postprocessing SMAA
@@ -24,8 +26,8 @@ export const MarsCanvas: React.FC = () => {
         }}
         camera={{
           fov: 45,
-          near: 0.1,        // Kết hợp logarithmicDepthBuffer cho phép near rất nhỏ (0.1m)
-          far: 1e10,        // và far cực lớn (10 triệu km) mà không bị nhấp nháy bề mặt
+          near: 1,
+          far: 1000000,
           position: [0, 8000, 88000],
         }}
         dpr={[1, 2]}

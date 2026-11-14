@@ -9,6 +9,40 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Shared Atlas release: body and model views use the same canvas and HUD. */
+.atlas-release a { color: #a7d9ff; text-underline-offset: 3px; }
+.atlas-release button:focus-visible, .atlas-release a:focus-visible { outline: 2px solid #9ee6c0; outline-offset: 3px; }
+.atlas-release .hud-top-bar { min-height: 100px; align-items: center; }
+.atlas-release .hud-brand-title { margin: 4px 0; }
+.atlas-release .hud-left-dock, .atlas-release .hud-right-panel { top: 122px; bottom: 90px; }
+.atlas-release .hud-right-panel { width: 290px; font-size: 0.85rem; line-height: 1.55; }
+.atlas-release .hud-left-dock { width: 248px; }
+.atlas-release .hud-right-panel p { margin: 0; }
+.atlas-release .hud-right-panel h2 { font-size: 1.25rem; }
+.atlas-release .hud-right-panel .hud-action-btn { flex-shrink: 0; }
+.atlas-release .source-note { color: #b5c4d9; font-size: 0.75rem; overflow-wrap: anywhere; }
+.atlas-release .source-note small { display: block; margin-top: 6px; }
+.atlas-release .coverage-note { border-left: 2px solid #f1a67c; padding-left: 10px; color: #ecd0b9; }
+.atlas-release .layer-record small { color: #b5c4d9; display: block; padding: 0 8px 8px; }
+.atlas-release .dock-item-text strong, .atlas-release .dock-item-text small { white-space: normal; }
+.atlas-release .dock-item-btn { min-height: 44px; }
+.atlas-release .dock-section-title { color: #b5c4d9; font-size: 0.72rem; }
+.atlas-release .body-selector { display: flex; flex-wrap: wrap; gap: 8px; }
+.atlas-release .body-selector [aria-pressed="true"] { border-color: #f18b62; background: #773e26; }
+.atlas-release .hud-bottom-bar { font-size: 0.75rem; gap: 12px; }
+.atlas-release .mars-canvas-wrapper { left: 265px; right: 307px; top: 115px; bottom: 85px; }
+.atlas-release [role="alert"] { color: #ffc8b3; }
+@media (max-width: 960px) {
+  .atlas-release { overflow-y: auto; display: flex; flex-direction: column; height: 100dvh; padding: 10px; gap: 10px; }
+  .atlas-release .hud-top-bar { position: relative; inset: auto; order: 0; flex-wrap: wrap; padding: 12px; gap: 10px; min-height: auto; }
+  .atlas-release .mars-canvas-wrapper { position: relative; inset: auto; order: 1; width: 100%; height: 42vh; min-height: 270px; flex-shrink: 0; }
+  .atlas-release .hud-left-dock, .atlas-release .hud-right-panel, .atlas-release .hud-bottom-bar { position: relative; inset: auto; width: 100%; max-height: none; flex-shrink: 0; display: flex; }
+  .atlas-release .hud-right-panel { order: 2; }
+  .atlas-release .hud-left-dock { order: 3; }
+  .atlas-release .hud-bottom-bar { order: 4; flex-wrap: wrap; }
+  .atlas-release .hud-brand-eyebrow { font-size: 0.6rem; }
+}
+
 * {
   box-sizing: border-box;
 }
@@ -1117,5 +1151,317 @@ button:disabled {
   }
   .cesium-surface-banner {
     left: 0.85rem;
+  }
+}
+
+/* =========================================================
+   DEVICE CONTROL & SUBSYSTEM INSPECTION PANEL (MVP)
+   ========================================================= */
+.device-control-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 0.65rem;
+  border: 1px solid rgb(56 220 255 / 24%);
+  background: rgb(8 16 30 / 72%);
+}
+
+.device-control-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.control-pill-badge,
+.control-status-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.16rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: #bcecff;
+  background: rgb(56 189 248 / 16%);
+  border: 1px solid rgb(56 189 248 / 38%);
+}
+
+.control-disclaimer,
+.control-note {
+  margin: 0;
+  font-size: 0.74rem;
+  line-height: 1.45;
+  color: #ecd0b9;
+  overflow-wrap: anywhere;
+}
+
+.control-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.control-section-label,
+.control-sub-label {
+  font-size: 0.73rem;
+  font-weight: 700;
+  color: #dce9fa;
+}
+
+.control-sub-label {
+  font-size: 0.71rem;
+  color: #b5c4d9;
+}
+
+.control-facts-box {
+  padding: 0.45rem 0.6rem;
+  border-radius: 0.45rem;
+  background: rgb(255 255 255 / 4%);
+  border: 1px solid rgb(158 179 208 / 18%);
+  color: #d7e4f5;
+  line-height: 1.4;
+}
+
+.control-chip-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+
+.control-step-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+
+.control-chip-btn,
+.control-step-btn {
+  min-width: 0;
+  min-height: 36px;
+  padding: 0.4rem 0.5rem;
+  border-radius: 0.45rem;
+  border: 1px solid rgb(158 179 208 / 28%);
+  background: rgb(255 255 255 / 6%);
+  color: #e4eefc;
+  font-size: 0.73rem;
+  line-height: 1.3;
+  text-align: left;
+  overflow-wrap: anywhere;
+  transition: border-color 0.16s ease, background 0.16s ease;
+}
+
+.control-step-btn {
+  text-align: center;
+  font-weight: 600;
+}
+
+.control-chip-btn[aria-pressed='true'],
+.control-step-btn[aria-pressed='true'] {
+  border-color: #7cdaa1;
+  background: rgb(124 218 161 / 20%);
+  color: #ffffff;
+}
+
+.control-spin-btn[aria-pressed='true'] {
+  border-color: #38dcff;
+  background: rgb(56 220 255 / 22%);
+  color: #ffffff;
+}
+
+.control-detail-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.55rem 0.6rem;
+  border-radius: 0.45rem;
+  background: rgb(4 10 20 / 78%);
+  border: 1px solid rgb(158 179 208 / 20%);
+  font-size: 0.74rem;
+  line-height: 1.45;
+  color: #d8e4f5;
+  overflow-wrap: anywhere;
+}
+
+.control-detail-card small {
+  color: #b5c4d9;
+  font-size: 0.7rem;
+}
+
+.control-node-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.control-node-row code {
+  font-size: 0.7rem;
+  color: #9ce4ff;
+  overflow-wrap: anywhere;
+}
+
+.control-limit-note {
+  color: #ecd0b9;
+}
+
+.control-reset-btn {
+  width: 100%;
+  border-color: rgb(158 179 208 / 38%);
+  background: rgb(255 255 255 / 8%);
+  color: #eef5ff;
+}
+
+/* =========================================================
+   DUAL-MODE VIEW SWITCHER (OPTION 1 / OPTION 2) & POV HUD
+   ========================================================= */
+.dual-mode-switcher {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.dual-mode-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.16rem;
+  min-width: 0;
+  padding: 0.5rem 0.6rem;
+  border-radius: 0.55rem;
+  border: 1px solid rgb(158 179 208 / 28%);
+  background: rgb(11 21 38 / 78%);
+  color: #dbe8f8;
+  text-align: left;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+  transition: border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+}
+
+.dual-mode-btn strong {
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #93c5fd;
+}
+
+.dual-mode-btn span {
+  font-size: 0.74rem;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.dual-mode-btn[aria-pressed='true'] {
+  border-color: #38dcff;
+  background: rgb(14 48 76 / 86%);
+  color: #ffffff;
+  box-shadow: 0 0 16px rgb(56 220 255 / 22%);
+}
+
+.dual-mode-btn[aria-pressed='true'] strong {
+  color: #6ce3ff;
+}
+
+.pov-control-deck {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 0.72rem;
+  border-radius: 0.65rem;
+  border: 1px solid rgb(124 218 161 / 32%);
+  background: rgb(8 20 24 / 74%);
+}
+
+.control-room-hud-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 12;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4.5rem 1rem 4.8rem;
+  box-sizing: border-box;
+}
+
+.pov-top-telemetry {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+  max-width: min(92vw, 44rem);
+}
+
+.pov-pill {
+  padding: 0.22rem 0.55rem;
+  border-radius: 0.4rem;
+  border: 1px solid rgb(56 220 255 / 38%);
+  background: rgb(5 12 22 / 72%);
+  color: #cdefff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.pov-pill.is-sensor {
+  border-color: rgb(124 218 161 / 50%);
+  color: #b8f2d0;
+}
+
+.pov-reticle-center {
+  position: relative;
+  width: 3.4rem;
+  height: 3.4rem;
+  opacity: 0.68;
+}
+
+.pov-reticle-ring {
+  position: absolute;
+  inset: 0.35rem;
+  border-radius: 50%;
+  border: 1px solid rgb(56 220 255 / 72%);
+}
+
+.pov-reticle-cross-h,
+.pov-reticle-cross-v {
+  position: absolute;
+  background: rgb(56 220 255 / 80%);
+}
+
+.pov-reticle-cross-h {
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+}
+
+.pov-reticle-cross-v {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+}
+
+.pov-bottom-hint {
+  padding: 0.28rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid rgb(158 179 208 / 24%);
+  background: rgb(5 12 22 / 72%);
+  color: #b7cadf;
+  font-size: 0.7rem;
+  text-align: center;
+  max-width: 90vw;
+}
+
+@media (max-width: 640px) {
+  .dual-mode-switcher {
+    grid-template-columns: 1fr;
+  }
+  .control-room-hud-overlay {
+    padding: 4.2rem 0.65rem 4.2rem;
   }
 }
