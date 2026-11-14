@@ -375,8 +375,8 @@
     "version": "1.1.0",
     "status": "available",
     "modelPath": "/assets/models/mars/mro_orbiter.glb",
-    "bytes": 4408164,
-    "sha256": "a9ec9e883bb1abbb202a671dbf882a529dc78a74bf9cac517e7a71c82fb28225"
+    "bytes": 624660,
+    "sha256": "69ee5dcdddfdbbd5ef7e144757926d6a89729b2ff265477659e82abeaacee621"
   },
   {
     "id": "curiosity_rover",

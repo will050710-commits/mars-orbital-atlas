@@ -71,25 +71,56 @@ test('Mars globe, orbital GLBs, sourced POIs, lazy surface GLB models and Moon u
 });
 
 test('repeated model inspection releases model geometries and textures', async ({ page }) => {
-  test.setTimeout(120000);
+  test.setTimeout(150000);
   await page.goto('/');
   const memory = () => page.evaluate(async () => {
     const modulePath = '/src/core/canvas/rendererDiagnostics.ts';
     return (await import(modulePath)).rendererMemory();
   });
+  const waitUntilSettled = async () => {
+    let previous = await memory();
+    let stableCount = 0;
+    for (let attempt = 0; attempt < 24; attempt++) {
+      await page.waitForTimeout(900);
+      const current = await memory();
+      if (
+        current &&
+        previous &&
+        current.geometries === previous.geometries &&
+        current.textures === previous.textures &&
+        current.geometries > 0
+      ) {
+        stableCount += 1;
+        if (stableCount >= 2) {
+          return current;
+        }
+      } else {
+        stableCount = 0;
+      }
+      previous = current;
+    }
+    return previous!;
+  };
+
   await expect.poll(async () => (await memory())?.geometries, { timeout: 15000 }).toBeGreaterThan(0);
-  // Warm up one surface -> overview roundtrip and wait for overview orbital GLBs + baked textures to settle
+  await page.getByRole('button', { name: 'Dừng', exact: true }).click();
+  // Settle initial overview (Mars 8K WebPs + 7 orbital GLBs) and capture Viking -> Overview baseline
   await buttonContaining(page, 'Viking landers').click();
   await expect(page.getByTestId('model-status')).toHaveText('Đã tải mô hình', { timeout: 60000 });
+  const vikingBaseline = await memory();
   await page.getByRole('button', { name: 'Trở về toàn cảnh', exact: true }).click();
-  await page.waitForTimeout(2000);
-  const baseline = await memory();
+  const baseline = await waitUntilSettled();
+  console.log('[mem:baseline]', baseline);
+
   for (let i = 0; i < 3; i++) {
     await buttonContaining(page, 'Viking landers').click();
     await expect(page.getByTestId('model-status')).toHaveText('Đã tải mô hình', { timeout: 60000 });
+    await expect.poll(async () => (await memory())?.textures, { timeout: 15000 }).toBeLessThanOrEqual((vikingBaseline?.textures ?? 26) + 2);
     await page.getByRole('button', { name: 'Trở về toàn cảnh', exact: true }).click();
-    await expect.poll(async () => (await memory())?.geometries, { timeout: 15000 }).toBeLessThanOrEqual(baseline.geometries + 4);
-    await expect.poll(async () => (await memory())?.textures, { timeout: 15000 }).toBeLessThanOrEqual(baseline.textures + 2);
+    const settled = await waitUntilSettled();
+    console.log(`[mem:cycle-${i}]`, settled);
+    expect(settled.geometries).toBeLessThanOrEqual(baseline.geometries + 4);
+    expect(settled.textures).toBeLessThanOrEqual(baseline.textures + 2);
   }
 });
 

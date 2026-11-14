@@ -20,12 +20,13 @@ interface OrbitalGlbModelProps {
   showSelectionRing?: boolean;
 }
 
-function configureGlbTextures(root: THREE.Object3D, maxAniso: number, castShadow: boolean) {
+function configureGlbTextures(root: THREE.Object3D, maxAniso: number, highDetail: boolean) {
   root.traverse((obj) => {
     const mesh = obj as THREE.Mesh;
     if (!mesh.isMesh) return;
-    mesh.castShadow = castShadow;
-    mesh.receiveShadow = castShadow;
+    mesh.castShadow = highDetail;
+    mesh.receiveShadow = highDetail;
+    if (!highDetail) return;
     const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
     for (const mat of materials) {
       if (!mat) continue;

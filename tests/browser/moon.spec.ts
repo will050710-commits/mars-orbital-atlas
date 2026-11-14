@@ -21,20 +21,27 @@ const pathFromUrl = (rawUrl: string) => new URL(rawUrl).pathname;
 
 test('Moon globe, orbital GLBs, sourced POIs and six documented Apollo records without surface GLB requests', async ({ page }) => {
   const errors: string[] = [];
+  const marsInitialModels: string[] = [];
   const moonModels: string[] = [];
   let onMoon = false;
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('request', (request) => {
-    if (onMoon && request.url().endsWith('.glb')) moonModels.push(pathFromUrl(request.url()));
+    if (!request.url().endsWith('.glb')) return;
+    if (onMoon) {
+      moonModels.push(pathFromUrl(request.url()));
+    } else {
+      marsInitialModels.push(pathFromUrl(request.url()));
+    }
   });
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Mars');
+  await expect.poll(() => new Set(marsInitialModels).size, { timeout: 30000 }).toBeGreaterThanOrEqual(7);
   onMoon = true;
   await page.getByRole('button', { name: 'Mặt Trăng · Moon' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Moon');
   await expect(page.locator('canvas')).toBeVisible();
   await expect(page.getByText('Globe minh họa · chưa có ảnh / địa hình đo đạc')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Ảnh bề mặt · unavailable' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: /Ảnh bề mặt.*unavailable/ })).toBeDisabled();
   await expect.poll(() => new Set(moonModels).size, { timeout: 30000 }).toBe(2);
   expect(moonModels.every((path) => ORBITAL_MOON_GLBS.has(path))).toBeTruthy();
 
@@ -135,7 +142,7 @@ test('narrow viewport keeps the Moon canvas, records and unavailable layers usab
   const panel = page.getByLabel('Thông tin và nguồn');
   await panel.scrollIntoViewIfNeeded();
   await expect(page.getByTestId('model-status')).toContainText('Chưa có mô hình');
-  await expect(page.getByRole('button', { name: 'Địa hình / độ cao · unavailable' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: /Địa hình \/ độ cao.*unavailable/ })).toBeDisabled();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBeTruthy();
   await page.screenshot({ path: 'test-results/moon-mobile.png', fullPage: true });
 });
@@ -179,14 +186,21 @@ test('switching from active Ingenuity controls to Moon clears device panel and r
 
 test('Moon orbital actors GLB Option 1 close-up, procedural Apollo LRV and Option 2 POV trigger zero surface Apollo GLBs', async ({ page }) => {
   const errors: string[] = [];
+  const marsInitialGlbs: string[] = [];
   const moonGlbRequests: string[] = [];
   let onMoon = false;
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('request', (request) => {
-    if (onMoon && request.url().endsWith('.glb')) moonGlbRequests.push(pathFromUrl(request.url()));
+    if (!request.url().endsWith('.glb')) return;
+    if (onMoon) {
+      moonGlbRequests.push(pathFromUrl(request.url()));
+    } else {
+      marsInitialGlbs.push(pathFromUrl(request.url()));
+    }
   });
 
   await page.goto('/');
+  await expect.poll(() => new Set(marsInitialGlbs).size, { timeout: 30000 }).toBeGreaterThanOrEqual(7);
   onMoon = true;
   await page.getByRole('button', { name: 'Mặt Trăng · Moon' }).click();
   await expect(page.getByTestId('orbital-actor-lro_orbiter')).toBeVisible();

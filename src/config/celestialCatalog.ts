@@ -72,12 +72,12 @@ export const ORBITAL_ACTORS_CATALOG: CelestialTarget[] = [
     name: 'Phobos (Vệ tinh I)',
     subtitle: 'Vệ tinh tự nhiên lớn nhất & gần Sao Hỏa nhất',
     category: 'MOON',
-    position: new THREE.Vector3(9376, 180, 0),
-    radius: 140, // Display-scaled for orbital visibility (documented mean radius ~11.27 km)
-    safeViewDistance: 480,
+    position: new THREE.Vector3(13200, 220, 0),
+    radius: 70, // Halved visual scale on orbit for clean separation (documented mean radius ~11.27 km)
+    safeViewDistance: 240,
     modelPath: '/assets/models/moons/phobos.glb',
     orbitalElements: {
-      semiMajorAxisKm: 9376,
+      semiMajorAxisKm: 13200, // Expanded display clearance outside orbiter shells (documented mean semi-major axis 9,376 km)
       eccentricity: 0.0151,
       inclinationDeg: 1.093,
       ascendingNodeDeg: 48.0,
@@ -88,7 +88,7 @@ export const ORBITAL_ACTORS_CATALOG: CelestialTarget[] = [
     source: nasaSource(
       'NASA Science · Phobos Facts & NASA 3D Resources GLB',
       'https://science.nasa.gov/resource/phobos-3d-model/',
-      'NASA 3D Resources 24878_Phobos_1_1000.glb & documented Keplerian parameters; orbital radius scaled for legibility',
+      'NASA 3D Resources 24878_Phobos_1_1000.glb & documented Keplerian parameters; orbital track/size scaled for legibility',
     ),
     telemetry: {
       classification: 'Vệ tinh tự nhiên dị hình (loại C/D giàu carbon)',
@@ -98,9 +98,9 @@ export const ORBITAL_ACTORS_CATALOG: CelestialTarget[] = [
       orbitalVelocityKms: '2,138 km/s',
       geologicalAge: '~4,3 tỷ năm',
       missionSummary:
-        'Quay quanh Sao Hỏa ở bán trục lớn 9.376 km (~5.980 km trên bề mặt), nhanh hơn chu kỳ tự quay của Sao Hỏa (chu kỳ 7,65 giờ). Nổi bật với hố va chạm Stickney rộng ~9 km.',
+        'Quay quanh Sao Hỏa ở bán trục lớn thực 9.376 km (~5.980 km trên bề mặt), nhanh hơn chu kỳ tự quay của Sao Hỏa (chu kỳ 7,65 giờ). Nổi bật với hố va chạm Stickney rộng ~9 km.',
       keyHighlights: [
-        'Kích thước thực: ~27 × 22 × 18 km (bán kính hiển thị minh họa phóng đại trên quỹ đạo)',
+        'Kích thước thực: ~27 × 22 × 18 km · Bán trục lớn thực 9.376 km (mở rộng quỹ đạo hiển thị 3D để tách lớp với đội tàu quỹ đạo)',
         'Chu kỳ quỹ đạo: 7 giờ 39 phút · Độ nghiêng xích đạo: 1,093°',
         'Độ cao quỹ đạo gần khiến Phobos chịu lực thủy triều tiến dần về phía Sao Hỏa',
       ],
@@ -112,12 +112,12 @@ export const ORBITAL_ACTORS_CATALOG: CelestialTarget[] = [
     name: 'Deimos (Vệ tinh II)',
     subtitle: 'Vệ tinh tự nhiên vòng ngoài của Sao Hỏa',
     category: 'MOON',
-    position: new THREE.Vector3(-23463, 420, 0),
-    radius: 110, // Display-scaled for orbital visibility (documented mean radius ~6.2 km)
-    safeViewDistance: 400,
+    position: new THREE.Vector3(-26000, 420, 0),
+    radius: 55, // Halved visual scale on orbit for clean separation (documented mean radius ~6.2 km)
+    safeViewDistance: 200,
     modelPath: '/assets/models/moons/deimos.glb',
     orbitalElements: {
-      semiMajorAxisKm: 23463.2,
+      semiMajorAxisKm: 26000, // Expanded outer ring (documented 23,463.2 km)
       eccentricity: 0.00033,
       inclinationDeg: 1.788,
       ascendingNodeDeg: 316.0,
@@ -128,7 +128,7 @@ export const ORBITAL_ACTORS_CATALOG: CelestialTarget[] = [
     source: nasaSource(
       'NASA Science · Deimos Facts & NASA 3D Resources GLB',
       'https://science.nasa.gov/resource/deimos-3d-model/',
-      'NASA 3D Resources 24879_Deimos_1_1000.glb & documented Keplerian parameters; orbital radius scaled for legibility',
+      'NASA 3D Resources 24879_Deimos_1_1000.glb & documented Keplerian parameters; orbital track/size scaled for legibility',
     ),
     telemetry: {
       classification: 'Vệ tinh tự nhiên vòng ngoài ( Chondrite giàu carbon )',
@@ -140,8 +140,8 @@ export const ORBITAL_ACTORS_CATALOG: CelestialTarget[] = [
       missionSummary:
         'Quỹ đạo vòng ngoài có bán trục lớn 23.463,2 km với độ lệch tâm rất nhỏ (0,00033). Bề mặt mượt hơn Phobos nhờ lớp bụi regolith phủ dày quanh hai hố lớn Swift và Voltaire.',
       keyHighlights: [
-        'Bán trục lớn: 23.463,2 km · Chu kỳ quỹ đạo: 30,31 giờ',
-        'Kích thước thực ~15 × 12 × 10 km (bán kính hiển thị minh họa trên quỹ đạo)',
+        'Bán trục lớn thực: 23.463,2 km · Chu kỳ quỹ đạo: 30,31 giờ',
+        'Kích thước thực ~15 × 12 × 10 km (kích thước và bán kính hiển thị được cân chỉnh để tránh chồng lấn)',
         'Quỹ đạo gần như tròn quanh mặt phẳng xích đạo Sao Hỏa',
       ],
     },
@@ -152,12 +152,12 @@ export const ORBITAL_ACTORS_CATALOG: CelestialTarget[] = [
     name: 'Tàu Mars Reconnaissance Orbiter (MRO)',
     subtitle: 'Tàu quỹ đạo viễn thám HiRISE / CRISM · Quỹ đạo cực',
     category: 'SPACECRAFT',
-    position: new THREE.Vector3(0, 3950, 0),
-    radius: 85,
-    safeViewDistance: 360,
+    position: new THREE.Vector3(0, 6200, 0),
+    radius: 42,
+    safeViewDistance: 180,
     modelPath: '/assets/models/mars/mro_orbiter.glb',
     orbitalElements: {
-      semiMajorAxisKm: 3980, // ~590 km display clearance above surface (actual 255x320 km)
+      semiMajorAxisKm: 6200, // Expanded ~2,810 km visual clearance above surface (actual 255x320 km)
       eccentricity: 0.002,
       inclinationDeg: 92.6,
       ascendingNodeDeg: 24.0,
@@ -180,7 +180,7 @@ export const ORBITAL_ACTORS_CATALOG: CelestialTarget[] = [
       missionSummary:
         'Trang bị kính thiên văn HiRISE và quang phổ kế CRISM lập bản đồ khoáng vật, bãi đáp cho các xe tự hành và làm trạm chuyển tiếp UHF chính.',
       keyHighlights: [
-        'Quỹ đạo thực 255 × 320 km nghiêng 92,6° (nâng nhẹ bán kính trên bản đồ 3D để tránh cắt bề mặt)',
+        'Quỹ đạo thực 255 × 320 km nghiêng 92,6° (mở rộng vòng quỹ đạo 3D ra xa bề mặt để dễ quan sát)',
         'Hiển thị trực tiếp mô hình NASA 3D Resources GLB (24884_MRO.glb) trên quỹ đạo và ở Lựa chọn 1',
         'Có góc nhìn khoang viễn thám HiRISE hướng xuống bề mặt ở Lựa chọn 2',
       ],
@@ -192,12 +192,12 @@ export const ORBITAL_ACTORS_CATALOG: CelestialTarget[] = [
     name: 'Tàu 2001 Mars Odyssey',
     subtitle: 'Tàu quỹ đạo đo phổ hồng ngoại THEMIS · Quỹ đạo cực',
     category: 'SPACECRAFT',
-    position: new THREE.Vector3(-4050, 420, 0),
-    radius: 85,
-    safeViewDistance: 360,
+    position: new THREE.Vector3(-7000, 420, 0),
+    radius: 42,
+    safeViewDistance: 180,
     modelPath: '/assets/models/mars/mars_odyssey.glb',
     orbitalElements: {
-      semiMajorAxisKm: 4080, // Actual ~400 km altitude Sun-synchronous
+      semiMajorAxisKm: 7000, // Expanded clearance above Mars (actual ~400 km altitude Sun-synchronous)
       eccentricity: 0.003,
       inclinationDeg: 93.1,
       ascendingNodeDeg: 112.0,
@@ -232,12 +232,12 @@ export const ORBITAL_ACTORS_CATALOG: CelestialTarget[] = [
     name: 'Tàu quỹ đạo MAVEN',
     subtitle: 'Nghiên cứu tầng khí quyển trên & thoát khí · Quỹ đạo elip',
     category: 'SPACECRAFT',
-    position: new THREE.Vector3(0, 2900, 4600),
-    radius: 90,
-    safeViewDistance: 380,
+    position: new THREE.Vector3(0, 4600, 7400),
+    radius: 45,
+    safeViewDistance: 190,
     modelPath: '/assets/models/mars/maven_orbiter.glb',
     orbitalElements: {
-      semiMajorAxisKm: 5600,
+      semiMajorAxisKm: 8800,
       eccentricity: 0.31, // Illustrative elliptical display geometry inspired by MAVEN's elliptical science orbit
       inclinationDeg: 75.0,
       ascendingNodeDeg: 205.0,
@@ -260,7 +260,7 @@ export const ORBITAL_ACTORS_CATALOG: CelestialTarget[] = [
       missionSummary:
         'Khảo sát cơ chế thất thoát khí quyển Sao Hỏa vào không gian do gió Mặt Trời và kiêm nhiệm chuyển tiếp liên lạc cho đội hình xe tự hành bề mặt.',
       keyHighlights: [
-        'Quỹ đạo elip nghiêng ~75° cắt sâu qua tầng khí quyển trên gần cận điểm',
+        'Quỹ đạo elip nghiêng ~75° (mở rộng vòng quỹ đạo hiển thị 3D ra xa Sao Hỏa để tách bạch)',
         'Hiển thị trực tiếp mô hình NASA 3D Resources GLB (24882_Maven.glb) trên quỹ đạo và ở Lựa chọn 1',
         'Xem góc nhìn quỹ đạo tầng trên khí quyển ở Lựa chọn 2',
       ],
@@ -272,12 +272,12 @@ export const ORBITAL_ACTORS_CATALOG: CelestialTarget[] = [
     name: 'Tàu Dawn (Hỗ trợ hấp dẫn 2009)',
     subtitle: 'Tàu đẩy ion · Bay ngang Sao Hỏa hỗ trợ hấp dẫn tới Vesta & Ceres',
     category: 'SPACECRAFT',
-    position: new THREE.Vector3(6200, -1400, 3200),
-    radius: 95,
-    safeViewDistance: 380,
+    position: new THREE.Vector3(9800, -2200, 5200),
+    radius: 48,
+    safeViewDistance: 200,
     modelPath: '/assets/models/mars/dawn_spacecraft.glb',
     orbitalElements: {
-      semiMajorAxisKm: 7400,
+      semiMajorAxisKm: 11800,
       eccentricity: 0.14,
       inclinationDeg: 42.0,
       ascendingNodeDeg: 292.0,
@@ -301,7 +301,7 @@ export const ORBITAL_ACTORS_CATALOG: CelestialTarget[] = [
         'Tàu Dawn thực hiện cơ động hỗ trợ hấp dẫn quanh Sao Hỏa tháng 02/2009 để bẻ mặt phẳng quỹ đạo và tiến vào vành đai tiểu hành tinh thăm Vesta và Ceres.',
       keyHighlights: [
         'Hiển thị trực tiếp mô hình NASA GLB (dawn_spacecraft.glb) ngay trên cung quỹ đạo flyby 2009',
-        'Vòng quỹ đạo quanh Sao Hỏa trong app là cung minh họa cho sự kiện flyby 2009',
+        'Vòng quỹ đạo quanh Sao Hỏa trong app là cung minh họa mở rộng cho sự kiện flyby 2009',
         'Có thể chuyển Lựa chọn 1 (Soi mô hình Dawn 3D) hoặc Lựa chọn 2 (Góc nhìn Cupola)',
       ],
     },
@@ -312,17 +312,17 @@ export const ORBITAL_ACTORS_CATALOG: CelestialTarget[] = [
     name: 'Trạm Quỹ Đạo Ares (Khái niệm)',
     subtitle: 'Trạm trung chuyển quỹ đạo Sao Hỏa (MOI Gateway · Minh họa)',
     category: 'SPACECRAFT',
-    position: new THREE.Vector3(-4200, 1200, 2800),
-    radius: 115,
-    safeViewDistance: 420,
+    position: new THREE.Vector3(6200, 1800, -7800),
+    radius: 38,
+    safeViewDistance: 170,
     modelPath: '/assets/models/stations/ares_orbital_station.glb',
     orbitalElements: {
-      semiMajorAxisKm: 5200,
+      semiMajorAxisKm: 10200,
       eccentricity: 0.001,
       inclinationDeg: 28.5,
       ascendingNodeDeg: 140.0,
       argumentOfPeriapsisDeg: 45.0,
-      meanAnomalyAtEpochDeg: 240.0,
+      meanAnomalyAtEpochDeg: 55.0,
       orbitalPeriodHours: 3.12,
     },
     source: nasaSource(
@@ -333,7 +333,7 @@ export const ORBITAL_ACTORS_CATALOG: CelestialTarget[] = [
     telemetry: {
       classification: 'Mô-đun khái niệm minh họa (Không phải tàu lịch sử đã phóng)',
       meanTemperatureC: '+21 °C (Khoang điều áp giả lập)',
-      atmosphericPressurePa: 'Quỹ đạo tầm trung ~1.810 km (minh họa)',
+      atmosphericPressurePa: 'Quỹ đạo tầm trung ~6.810 km trên bề mặt (minh họa)',
       surfaceGravityMs2: 'Vi trọng lực quỹ đạo (minh họa)',
       orbitalVelocityKms: '~2,89 km/s',
       geologicalAge: 'Khái niệm hạ tầng quỹ đạo trong Atlas',
@@ -341,7 +341,7 @@ export const ORBITAL_ACTORS_CATALOG: CelestialTarget[] = [
         'Trạm quỹ đạo khái niệm đóng vai trò điểm ngắm toàn cảnh Sao Hỏa và khoang điều khiển từ trên cao (Cupola POV) cho đội tàu thám hiểm; sử dụng mô hình giàn mô-đun ISS của NASA làm tham chiếu cấu trúc.',
       keyHighlights: [
         'Ghi chú rõ: đây là khái niệm minh họa dùng mô hình GLB chính thức của Trạm Vũ trụ Quốc tế (ISS) làm tham chiếu kết cấu, không phải nhiệm vụ Sao Hỏa có thật',
-        'Quỹ đạo tầm trung 5.200 km tạo góc nhìn bao quát cả Phobos và Sao Hỏa',
+        'Vòng quỹ đạo hiển thị tầm trung ~10.200 km tạo góc nhìn bao quát tách biệt khỏi bầu khí quyển Sao Hỏa',
         'Hỗ trợ Lựa chọn 1 (Soi mô hình trạm 3D) và Lựa chọn 2 (Buồng ngắm Cupola)',
       ],
     },
@@ -352,12 +352,12 @@ export const ORBITAL_ACTORS_CATALOG: CelestialTarget[] = [
     name: 'Lunar Reconnaissance Orbiter (LRO)',
     subtitle: 'Tàu quỹ đạo lập bản đồ LROC & LOLA · Quỹ đạo cực Mặt Trăng',
     category: 'SPACECRAFT',
-    position: new THREE.Vector3(0, 2150, 0),
-    radius: 75,
-    safeViewDistance: 290,
+    position: new THREE.Vector3(0, 2650, 0),
+    radius: 38,
+    safeViewDistance: 165,
     modelPath: '/assets/models/moons/lro_orbiter.glb',
     orbitalElements: {
-      semiMajorAxisKm: 2120, // Display clearance above 1737.4 km radius (actual ~50-200 km altitude)
+      semiMajorAxisKm: 2650, // Expanded display clearance above 1737.4 km radius (actual ~50-200 km altitude)
       eccentricity: 0.004,
       inclinationDeg: 89.2,
       ascendingNodeDeg: 35.0,
@@ -392,12 +392,12 @@ export const ORBITAL_ACTORS_CATALOG: CelestialTarget[] = [
     name: 'Apollo Command/Service Module (CSM)',
     subtitle: 'Mô-đun chỉ huy quỹ đạo Mặt Trăng · Hồ sơ sứ mệnh Apollo',
     category: 'SPACECRAFT',
-    position: new THREE.Vector3(-2320, 120, 0),
-    radius: 78,
-    safeViewDistance: 300,
+    position: new THREE.Vector3(-3050, 140, 0),
+    radius: 39,
+    safeViewDistance: 170,
     modelPath: '/assets/models/moons/apollo_csm.glb',
     orbitalElements: {
-      semiMajorAxisKm: 2340, // Display clearance above 1737.4 km radius (actual ~110 km altitude)
+      semiMajorAxisKm: 3050, // Expanded display clearance above 1737.4 km radius (actual ~110 km altitude)
       eccentricity: 0.002,
       inclinationDeg: 18.0,
       ascendingNodeDeg: 155.0,

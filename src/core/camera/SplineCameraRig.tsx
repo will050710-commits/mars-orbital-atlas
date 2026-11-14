@@ -115,7 +115,10 @@ export function SplineCameraRig() {
     perspective.fov = 45;
     perspective.updateProjectionMatrix();
 
-    const overview = new Vector3(0, radius * 0.65, radius * 3.6);
+    const overview =
+      bodyId === 'mars'
+        ? new Vector3(0, radius * 1.15, radius * 5.2)
+        : new Vector3(0, radius * 0.72, radius * 3.9);
     orbit.enabled = true;
 
     if (isTerrainShowcase) {
@@ -192,7 +195,7 @@ export function SplineCameraRig() {
     prevDeviceIdRef.current = null;
     orbit.minDistance =
       target && (target.category === 'MOON' || target.category === 'SPACECRAFT')
-        ? Math.max(80, target.radius * 1.35)
+        ? Math.max(40, target.radius * 1.35)
         : radius * 0.08;
     orbit.maxDistance = radius * 25;
 
